@@ -7,7 +7,8 @@ async def try_login(p):
     browser = await p.chromium.launch(headless=False)
     context = await browser.new_context(
             locale='ru-RU',
-            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            headless=True
     )
     page = await context.new_page()
 
