@@ -8,7 +8,7 @@ from pinterest_parser import like_pins
 from telegram import InputMediaPhoto
 
 password_file = 'passwords.txt'
-
+print(bot_token)
 bot = Bot(token=bot_token)
 dp = Dispatcher()
 
