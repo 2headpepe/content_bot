@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Устанавливаем необходимые браузеры для Playwright
 RUN python -m playwright install
+RUN python -m playwright install-deps
 
 # Копируем остальные файлы в контейнер
 COPY . .
