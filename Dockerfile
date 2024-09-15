@@ -1,4 +1,3 @@
-Dockerfile
 # Используем базовый образ с последней версией Python
 FROM python:3.9
 
