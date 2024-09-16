@@ -114,7 +114,7 @@ async def approved_images(message: types.Message,
     media_files = [types.InputMediaPhoto(media=url) for id, pin_id, url in media_data]
     chunk_size = 10
 
-    await bot.send_message(message.chat.id, "Следующие в предложке {count} фото из оставшихся {remaining}:")
+    await bot.send_message(message.chat.id, f"Следующие в предложке {count} фото из оставшихся {remaining}:")
     for i in range(0, len(media_files), chunk_size):
         chunk = media_files[i:i + chunk_size]
         await bot.send_media_group(chat_id=message.chat.id, media=chunk)
