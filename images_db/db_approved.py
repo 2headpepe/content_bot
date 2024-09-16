@@ -35,7 +35,7 @@ async def add_images_to_db(image_data):
     
     for image in image_data:
         image_id, image_url = image['pin_id'], image['url']
-        
+        print(image_id,image_url)
         try:
             cursor.execute('INSERT INTO images (pin_id, image_url) VALUES (?, ?)', (image_id, image_url,))
         except sqlite3.IntegrityError:

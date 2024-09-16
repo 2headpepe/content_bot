@@ -155,7 +155,7 @@ async def handle_reaction(callback_query: types.CallbackQuery):
 
         pins_data = [{'pin_id': id, 'url': url} for id, url in liked]
         liked.clear()
-
+        print(pins_data)
         await images_db.db_approved.add_images_to_db(pins_data)
 
 async def init_bot():
