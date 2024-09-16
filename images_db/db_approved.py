@@ -55,8 +55,8 @@ def get_last_image_id():
     except FileNotFoundError:
         return 0
 
-def get_images():
-    last_image_id = 0
+def get_images(num_images):
+    last_image_id = get_last_image_id()
     
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -64,10 +64,16 @@ def get_images():
     # Выбор изображений после последнего полученного ID
     cursor.execute('SELECT id, pin_id, image_url FROM images WHERE id > ? ORDER BY id ASC LIMIT ?', (last_image_id, num_images))
     rows = cursor.fetchall()
+
+    remaining_photos = 0
+    # Если есть новые изображения, обновляем последний ID
+    if rows:
+        cursor.execute('SELECT COUNT(*) FROM images WHERE id > ?', (last_image_id,))
+        remaining_photos = cursor.fetchone()[0]
     
     conn.close()
     
-    return rows
+    return rows, remaining_photos
 
 def get_images_and_last_id(num_images):
     last_image_id = get_last_image_id()
