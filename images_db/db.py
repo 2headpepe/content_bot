@@ -40,6 +40,12 @@ def get_last_image_id():
     except FileNotFoundError:
         return 0
 
+def get_images_number():
+    last_image = get_last_image_id()
+    
+    cursor.execute('SELECT id, pin_id, image_url FROM images WHERE id > ? ORDER BY id ASC', (last_image_id))
+    return cursor.fetchone()[0]
+    
 def get_images_and_last_id(num_images):
     last_image_id = get_last_image_id()
     

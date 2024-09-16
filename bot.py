@@ -2,12 +2,14 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandObject
 from sd import generate_image
 from consts import stable_diffusion_image_path, bot_token, negative_prompt, allowed_users, tg_channel_id
-from images_db.db import add_images_to_db, get_images_and_last_id, init_db, get_image_by_pin_id
+from images_db.db import add_images_to_db, get_images_and_last_id, init_db, get_image_by_pin_id, get_images_number
 import images_db.db_approved
 from pinterest_parser import like_pins
 from telegram import InputMediaPhoto
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+import datetime
 
 password_file = 'passwords.txt'
 feedback_chat_id = '879672892'
@@ -191,10 +193,18 @@ async def parse_pinterest_images():
     else:
         await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок" )
 
+async def schedule_parse_pinterest_images():
+    count = get_images_number()
+    if count < 100:
+        await parse_pinterest_images()
+
+    now = datetime.datetime.now()
+    scheduler.add_job(parse_pinterest_images, "cron", hour=now.hour+1, minute=now.minute) 
+
 async def init_bot():
     init_db()
     scheduler.add_job(send_image, "cron", hour=10, minute=0, args=[True]) 
-    scheduler.add_job(parse_pinterest_images, "cron", hour=18, minute=50) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=18, minute=50) 
 
     scheduler.start()
     await dp.start_polling(bot)
