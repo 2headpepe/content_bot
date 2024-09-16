@@ -104,7 +104,7 @@ async def approved_images(message: types.Message,
     if command.args is not None and int(command.args) <= 20:
         count = int(command.args)
         
-    media_data = images_db.db_approved.get_images(count)
+    media_data, remaining = images_db.db_approved.get_images(count)
 
     if len(media_data) < 1:
         await bot.send_message(message.chat.id, "Нет апрувнутых фото")
@@ -114,7 +114,7 @@ async def approved_images(message: types.Message,
     media_files = [types.InputMediaPhoto(media=url) for id, pin_id, url in media_data]
     chunk_size = 10
 
-    await bot.send_message(message.chat.id, "Следующие в предложке {count} фото:")
+    await bot.send_message(message.chat.id, "Следующие в предложке {count} фото из оставшихся {remaining}:")
     for i in range(0, len(media_files), chunk_size):
         chunk = media_files[i:i + chunk_size]
         await bot.send_media_group(chat_id=message.chat.id, media=chunk)
