@@ -75,10 +75,14 @@ async def add_images_to_db():
         try:
             cursor.execute('INSERT INTO images (pin_id, image_url) VALUES (?, ?)', (image_id, image_url,))
         except sqlite3.IntegrityError:
+            conn.commit()
+            conn.close()
+            return -1
             pass
     
     conn.commit()
     conn.close()
+    return 1
 
 async def get_image_by_pin_id(pin_id):
     init_db()

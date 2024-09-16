@@ -62,7 +62,7 @@ def get_images():
     cursor = conn.cursor()
     
     # Выбор изображений после последнего полученного ID
-    cursor.execute('SELECT id, pin_id, image_url FROM images')
+    cursor.execute('SELECT id, pin_id, image_url FROM images WHERE id > ? ORDER BY id ASC LIMIT ?', (last_image_id, num_images))
     rows = cursor.fetchall()
     
     conn.close()
