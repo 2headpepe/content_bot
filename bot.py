@@ -7,10 +7,15 @@ import images_db.db_approved
 from pinterest_parser import like_pins
 from telegram import InputMediaPhoto
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 password_file = 'passwords.txt'
+feedback_chat_id = '879672892'
+
 print(bot_token)
 bot = Bot(token=bot_token)
 dp = Dispatcher()
+scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
 
 async def validate_user(message: types.Message):
     if message.from_user.id not in allowed_users:
@@ -56,12 +61,7 @@ async def pinterest_images(message: types.Message,
         command: CommandObject):
     await validate_user(message)
 
-    res = await add_images_to_db()
-
-    if res == -1:
-        await message.reply(f"Возникла ошибка" )
-    else:
-        await message.reply(f"Готово" )
+    await parse_pinterest_images()
 
 async def send_images_with_checkboxes(chat_id):
     media_data, remaining_photos = get_images_and_last_id(1)
@@ -124,19 +124,12 @@ async def approved_images(message: types.Message,
         command: CommandObject):
     if not await validate_user(message):
         return
-
-    media_data, remaining_photos = images_db.db_approved.get_images_and_last_id(5)
-
-    if len(media_data) < 1:
-        await bot.send_message(message.chat.id, "Нет апрувнутых фото")
-
-    media_files = [types.InputMediaPhoto(media=url) for id, pin_id, url in media_data]
-    chunk_size = 10
-
-    for i in range(0, len(media_files), chunk_size):
-        chunk = media_files[i:i + chunk_size]
-        
-        await bot.send_media_group(chat_id=tg_channel_id, media=chunk)
+    
+    count = 5
+    if command.args is not None and int(command.args) <= 20:
+        count = int(command.args)
+    
+    await post_approved_images(count, message.chat.id)
 
 liked = []
 
@@ -155,9 +148,53 @@ async def handle_reaction(callback_query: types.CallbackQuery):
 
         pins_data = [{'pin_id': id, 'url': url} for id, url in liked]
         liked.clear()
-        print(pins_data)
         await images_db.db_approved.add_images_to_db(pins_data)
+        await bot.send_message(callback_query.from_user.id, f"Сохранил понравившееся!")
+
+async def post_approved_images(number, feedback_chat_id):
+    media_data, remaining_photos = images_db.db_approved.get_images_and_last_id(number)
+
+    if len(media_data) < number:
+        await bot.send_message(feedback_chat_id, "Недостаточно апрувнутых фото")
+        return -1
+
+    media_files = [types.InputMediaPhoto(media=url) for id, pin_id, url in media_data]
+    chunk_size = 10
+
+    for i in range(0, len(media_files), chunk_size):
+        chunk = media_files[i:i + chunk_size]
+        
+        await bot.send_media_group(chat_id=tg_channel_id, media=chunk)
+
+utro = "утром"
+evening = "вечером"
+async def send_image(morning):
+    if morning:
+        await bot.send_message(feedback_chat_id, f"Начинаю запланированную выкладку картинок {utro}")
+    else:
+        await bot.send_message(feedback_chat_id, f"Начинаю запланированную выкладку картинок {evening}")
+    res = await post_approved_images(5, feedback_chat_id)
+
+    if res == '-1':
+        await bot.send_message(feedback_chat_id, "Не могу выкладывать фото, пока вы не посмотрите предложку. Может быть выполним /view_images?")
+    else:
+        if morning:
+            scheduler.add_job(send_image, "cron", hour=19, minute=0, args=[False]) 
+        else:
+            scheduler.add_job(send_image, "cron", hour=10, minute=0, args=[True]) 
+
+async def parse_pinterest_images():
+    res = await add_images_to_db()
+
+    if res == -1:
+        await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
+    else:
+        await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок" )
 
 async def init_bot():
     init_db()
+    scheduler.add_job(send_image, "cron", hour=10, minute=0, args=[True]) 
+    scheduler.add_job(parse_pinterest_images, "cron", hour=18, minute=50) 
+
+    scheduler.start()
     await dp.start_polling(bot)
