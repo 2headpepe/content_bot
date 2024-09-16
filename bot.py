@@ -59,9 +59,9 @@ async def pinterest_images(message: types.Message,
     res = await add_images_to_db()
 
     if res == -1:
-        message.reply(f"Возникла ошибка" )
+        await message.reply(f"Возникла ошибка" )
     else:
-        message.reply(f"Готово" )
+        await message.reply(f"Готово" )
 
 async def send_images_with_checkboxes(chat_id):
     media_data, remaining_photos = get_images_and_last_id(1)
