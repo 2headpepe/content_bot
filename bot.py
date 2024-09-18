@@ -125,7 +125,7 @@ async def cmd_pinterest_images(message: types.Message, command: CommandObject):
         await message.answer("Ошибка: нет доступа")
         return
 
-    await parse_pinterest_images(False)
+    await parse_pinterest_images(bot, False)
 
 @dp.message(Command("parse_non_asian_pinterest"))
 async def cmd_parse_non_asian_pinterest(message: types.Message, command: CommandObject):
