@@ -376,10 +376,10 @@ async def init_bot():
     init_db()
 
     scheduler.add_job(schedule_send_image, "cron", hour=8, minute=0, args=[True]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=1, minute=15, args=[True]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=1, minute=30, args=[True]) 
     
     scheduler.add_job(schedule_send_image, "cron", hour=8, minute=0, args=[False]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=1, minute=15, args=[False]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=1, minute=20, args=[False]) 
 
     scheduler.add_job(send_message_to_watch, "cron", hour=12, minute=30, args=[True]) 
     scheduler.add_job(send_message_to_watch, "cron", hour=19, minute=0, args=[False]) 
