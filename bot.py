@@ -376,10 +376,10 @@ async def init_bot():
     init_db()
 
     scheduler.add_job(schedule_send_image, "cron", hour=20, minute=25, args=[True]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=23, minute=0, args=[True]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=20, minute=47, args=[True]) 
     
-    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[False]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=23, minute=0, args=[False]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=21, minute=0, args=[False]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=20, minute=47, args=[False]) 
 
     scheduler.start()
     await dp.start_polling(bot)
