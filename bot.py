@@ -367,8 +367,9 @@ async def schedule_send_image(extra=False):
         time = datetime.now()
         scheduler.add_job(schedule_send_image, "cron", hour=(time.hour+8)%24, minute = time.minute, args=[extra]) 
 
-async def send_message_to_watch():
-    await bot.send_message(feedback_chat_id, "Брат, готовлю новый контент, хочешь глянуть? /view_images или /view_non_asian_images")
+async def send_message_to_watch(extra):
+    command = "/view_non_asian_images" if extra else "/view_images"
+    await bot.send_message(feedback_chat_id, f"Брат, готовлю новый контент, хочешь глянуть? {command}")
 
 async def init_bot():
     images_db.db_approved.init_db()
@@ -379,6 +380,9 @@ async def init_bot():
     
     scheduler.add_job(schedule_send_image, "cron", hour=8, minute=0, args=[False]) 
     scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=1, minute=15, args=[False]) 
+
+    scheduler.add_job(send_message_to_watch, "cron", hour=12, minute=30, args=[True]) 
+    scheduler.add_job(send_message_to_watch, "cron", hour=19, minute=0, args=[False]) 
 
     scheduler.start()
     await dp.start_polling(bot)
