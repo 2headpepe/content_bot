@@ -349,10 +349,10 @@ async def schedule_parse_pinterest_images(extra=False):
     feedback_text = f"Начинаю запланированный парсинг картинок для тгк {channel}. На данный момент {count} фотографий"
     await bot.send_message(feedback_chat_id, feedback_text)
     if count < 100:
-        await parse_pinterest_images(extra)
+        await parse_pinterest_images(bot, extra)
 
     now = datetime.now()
-    scheduler.add_job(parse_pinterest_images, "cron", hour=now.hour+1, minute=now.minute) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=now.hour+1, minute=now.minute, args=[extra]) 
 
 async def schedule_send_image(extra=False):
     channel = "BeautyBliss" if extra else "Asian girls"
