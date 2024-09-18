@@ -95,6 +95,8 @@ async def add_images_to_db(extra=False):
     table_name = 'extra_images' if extra else 'images'
     
     for image in image_data:
+        print(image)
+
         image_id, image_url = image['pin_id'], image['url']
         
         try:

@@ -142,6 +142,7 @@ async def cmd_view_non_asian_images(message: types.Message,
         await message.answer("Ошибка: нет доступа")
         return
     media_data, remaining_media = get_images_and_last_id(1, True)
+    print(media_data, remaining_media)
     await send_media_with_checkboxes(message.chat.id, media_data, remaining_media, send_photo, 'image', True)
 
 @dp.message(Command("view_images"))
