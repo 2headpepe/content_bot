@@ -51,7 +51,7 @@ async def send_media_with_checkboxes(chat_id, media_data, remaining_media, send_
         return
     
     id, pin_id, url = media_data[0]
-    
+    bot.send_message(chat_id, f"{id} {pin_id} {url}")
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="❤️", callback_data=f"like_{pin_id}_{media_type}_{extra}")],
         [InlineKeyboardButton(text="👎", callback_data=f"dislike_{pin_id}_{media_type}_{extra}")],
@@ -133,7 +133,7 @@ async def cmd_parse_non_asian_pinterest(message: types.Message, command: Command
         await message.answer("Ошибка: нет доступа")
         return
 
-    await parse_pinterest_images(True)
+    await parse_pinterest_images(True, bot)
 
 @dp.message(Command("view_non_asian_images"))
 async def cmd_view_non_asian_images(message: types.Message,
@@ -152,6 +152,7 @@ async def cmd_view_image(message: types.Message,
         await message.answer("Ошибка: нет доступа")
         return
     media_data, remaining_media = get_images_and_last_id(1)
+
     await send_media_with_checkboxes(message.chat.id, media_data, remaining_media, send_photo, 'image')
 
 
@@ -332,8 +333,8 @@ async def post_approved_images(number, feedback_chat_id, extra=False):
         print(media_files,channel)
         await bot.send_media_group(chat_id=channel, media=chunk)
 
-async def parse_pinterest_images(extra=False):
-    res = await add_images_to_db(extra)
+async def parse_pinterest_images(extra=False, bot):
+    res = await add_images_to_db(extra, bot)
 
     if res == -1:
         await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
