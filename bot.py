@@ -311,7 +311,8 @@ async def handle_reaction(callback_query: types.CallbackQuery):
             await images_db.db_approved.add_images_to_db(pins_data, extra)
         elif content_type == 'video':
             await video_db.db_approved.add_video_to_db(pins_data)
-        await bot.send_message(callback_query.from_user.id, f"Сохранил понравившееся! Попробуй {"/view_approved_non_asian_images" if extra else "/view_approved_images"}")
+        options = "/view_approved_non_asian_images" if extra else "/view_approved_images"
+        await bot.send_message(callback_query.from_user.id, f"Сохранил понравившееся! Попробуй {options}")
 
 async def post_approved_images(number, feedback_chat_id, extra=False):
     media_data, remaining_photos = images_db.db_approved.get_images_and_last_id(number, extra)
@@ -348,7 +349,8 @@ async def parse_pinterest_non_asian_images():
 
 async def schedule_parse_pinterest_images(extra=False):
     count = get_images_number(extra)
-    feedback_text = f"Начинаю запланированный парсинг картинок для тгк {"BeautyBliss" if extra else "Asian girls"}. На данный момент {count} фотографий"
+    channel = "BeautyBliss" if extra else "Asian girls"
+    feedback_text = f"Начинаю запланированный парсинг картинок для тгк {channel}. На данный момент {count} фотографий"
     await bot.send_message(feedback_chat_id, feedback_text)
     if count < 100:
         await parse_pinterest_images(extra)
@@ -357,7 +359,8 @@ async def schedule_parse_pinterest_images(extra=False):
     scheduler.add_job(parse_pinterest_images, "cron", hour=now.hour+1, minute=now.minute) 
 
 async def schedule_send_image(extra=False):
-    feedback_text = f"Начинаю запланированную выкладку картинок в тгк {"BeautyBliss" if extra else "Asian girls"}"
+    channel = "BeautyBliss" if extra else "Asian girls"
+    feedback_text = f"Начинаю запланированную выкладку картинок в тгк {channel}"
     await bot.send_message(feedback_chat_id, feedback_text)
     res = await post_approved_images(5, feedback_chat_id, extra)
 
