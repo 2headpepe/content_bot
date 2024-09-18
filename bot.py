@@ -189,24 +189,24 @@ async def cmd_parse_basketball_videos(message: types.Message,
     else:
         await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок" )
 
-@dp.message(Command("parse_dzen"))
-async def dzen(message: types.Message,
-        command: CommandObject):
+# @dp.message(Command("parse_dzen"))
+# async def dzen(message: types.Message,
+#         command: CommandObject):
 
-    news = await parse_dzen('it')
-    if news == -1:
-        bot.send_message(message.chat.id, 'Ошибка, предположительно: нет такого канала')
+#     news = await parse_dzen('it')
+#     if news == -1:
+#         bot.send_message(message.chat.id, 'Ошибка, предположительно: нет такого канала')
     
-    for new in news:
-        text = f"*{new["title"]}*"
+#     for new in news:
+#         text = f"*{new["title"]}*"
 
-        for txt in new["content"]:
-            text +="\n \n"+ txt
+#         for txt in new["content"]:
+#             text +="\n \n"+ txt
 
-        if new["image_url"]:
-            await bot.send_photo(message.chat.id, new["image_url"], caption=text, parse_mode='markdown')
-        else:
-            await bot.send_message(message.chat.id, text, parse_mode='markdown')
+#         if new["image_url"]:
+#             await bot.send_photo(message.chat.id, new["image_url"], caption=text, parse_mode='markdown')
+#         else:
+#             await bot.send_message(message.chat.id, text, parse_mode='markdown')
 
 liked = []
 
