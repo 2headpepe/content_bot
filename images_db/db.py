@@ -107,12 +107,16 @@ async def add_images_to_db(bot, extra=False):
 
 async def get_image_by_pin_id(pin_id, extra=False):
     init_db()
-    table_name = 'extra_images' if extra else 'images'
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
-    cursor.execute(f'SELECT image_url FROM {table_name} WHERE pin_id = ?', (pin_id,))
+    if extra==True:
+        cursor.execute(f'SELECT image_url FROM extra_images WHERE pin_id = ?', (pin_id,))
+    else:
+        cursor.execute(f'SELECT image_url FROM images WHERE pin_id = ?', (pin_id,))
     rows = cursor.fetchall()
+
+    
     conn.close()
     
-    return rows[0] if rows else None
+    return rows[0]
