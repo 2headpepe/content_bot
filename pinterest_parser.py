@@ -1,9 +1,9 @@
 import asyncio
 from playwright.async_api import async_playwright
 import re
-from consts import pinterest_login, pinterest_password
+from consts import pinterest_login, pinterest_password, pinterest_basketball_login, pinterest_basketball_password
 
-async def try_login(p):
+async def try_login(p, login, password):
     browser = await p.chromium.launch(headless=True)
     context = await browser.new_context(
             locale='ru-RU',
@@ -15,8 +15,8 @@ async def try_login(p):
     await page.goto('https://ru.pinterest.com/login/')
 
     # Log into Pinterest
-    await page.fill('input[name="id"]', pinterest_login)
-    await page.fill('input[name="password"]', pinterest_password)
+    await page.fill('input[name="id"]', login)
+    await page.fill('input[name="password"]', password)
     await page.click('button[type="submit"]')
 
     # Wait for the feed page to load completely
@@ -38,7 +38,7 @@ def transform_image_url(url):
 
 async def parse_pinterest_images():
     async with async_playwright() as p:
-        browser, page = await try_login(p)
+        browser, page = await try_login(p, pinterest_login, pinterest_password)
         # Scroll down to ensure more images are loaded
         await page.evaluate('window.scrollBy(0, window.innerHeight * 2)')
         await page.wait_for_timeout(2000)  # Wait for loading
@@ -72,7 +72,53 @@ async def like_pin(page, pin_id):
 
 async def like_pins(pins):
     async with async_playwright() as p:
-        browser, page = await try_login(p)
+        browser, page = await try_login(p, pinterest_login, pinterest_password)
         for id, url in pins:
             await like_pin(page, id)
         await browser.close()
+
+async def parse_basketball_video():
+    async with async_playwright() as p:
+        browser, page = await try_login(p, pinterest_basketball_login, pinterest_basketball_password)
+        search_text = 'basketball highlights videos'  # замените на ваш текст поиска
+        await page.goto('https://www.pinterest.com/search/pins/?q=basketball%20highlights%20videos')
+
+        for _ in range(10):
+            await page.evaluate('window.scrollBy(0, window.innerHeight)')
+            await page.wait_for_timeout(2000)  # Дождитесь загрузки нового 
+
+        pins = await page.evaluate('''() => {
+            const videos = document.querySelectorAll('video');
+            const result = [];
+            videos.forEach(video => {
+                const parent = video.closest('a[href*="/pin/"]');
+                if (parent) {
+                    const pinId = parent.href.split("/pin/")[1].split("/")[0];
+                    result.push({id: pinId, url: parent.href});
+                }
+            });
+            return result.slice(0, 30);
+        }''')
+
+        result = []
+        print("Извлеченные пины:", pins)
+
+        for pin in pins:
+            id, url = pin['id'], pin['url']
+            new_page = await browser.new_page()
+            await new_page.goto(url)
+            video_url = await new_page.evaluate('''() => {
+                const video = document.querySelector('video');
+                return video ? video.src : null;
+            }''')
+            
+            print({'pin_id': id, 'url': video_url})
+            if video_url and video_url.endswith('.mp4'):
+                result.append({'pin_id': id, 'url': video_url})
+            await new_page.close()
+
+
+        # Закройте браузер
+        await browser.close()
+
+        return result
