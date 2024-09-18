@@ -38,7 +38,7 @@ def transform_image_url(url):
 
 async def parse_pinterest_images(bot):
     async with async_playwright() as p:
-        browser, page = await try_login(p, pinterest_login, pinterest_password)
+        browser, page = await try_login(p, pinterest_non_asian_login, pinterest_non_asian_password)
         # Scroll down to ensure more images are loaded
         await page.evaluate('window.scrollBy(0, window.innerHeight * 2)')
         await page.wait_for_timeout(2000)  # Wait for loading
