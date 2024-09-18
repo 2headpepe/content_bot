@@ -93,7 +93,7 @@ async def add_images_to_db(bot, extra=False):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     table_name = 'extra_images' if extra else 'images'
-    bot.send_message('879672892', f"{image_id} {image_url}")
+    bot.send_message('879672892', "test")
     for image in image_data:
         image_id, image_url = image['pin_id'], image['url']
         bot.send_message('879672892', f"{image_id} {image_url}")
