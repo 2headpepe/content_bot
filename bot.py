@@ -283,6 +283,7 @@ liked = []
 async def handle_reaction(callback_query: types.CallbackQuery):
     action, id, content_type, extra = callback_query.data.split("_", 3)
     if content_type == 'image':
+        bot.send_message(feedback_chat_id,f"{action} {id} {content_type} {extra}")
         url, = await get_image_by_pin_id(id, extra)
         media_data, remaining_media = get_images_and_last_id(1, extra)
         if action == "like":

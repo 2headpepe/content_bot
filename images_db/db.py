@@ -106,6 +106,7 @@ async def add_images_to_db(bot, extra=False):
     return 1
 
 async def get_image_by_pin_id(pin_id, extra=False):
+    init_db()
     table_name = 'extra_images' if extra else 'images'
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
