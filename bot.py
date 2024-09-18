@@ -132,7 +132,7 @@ async def cmd_parse_non_asian_pinterest(message: types.Message, command: Command
     if not await validate_user(message.from_user.id):
         await message.answer("Ошибка: нет доступа")
         return
-
+    await bot.send_message(feedback_chat_id, f"test" )
     await parse_pinterest_images(bot, True)
 
 @dp.message(Command("view_non_asian_images"))
@@ -334,6 +334,7 @@ async def post_approved_images(number, feedback_chat_id, extra=False):
         await bot.send_media_group(chat_id=channel, media=chunk)
 
 async def parse_pinterest_images(bot, extra=False):
+    await bot.send_message(feedback_chat_id, f"test" )
     res = await add_images_to_db(bot, extra)
 
     if res == -1:
