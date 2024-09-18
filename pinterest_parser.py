@@ -123,8 +123,9 @@ async def parse_basketball_video():
 
         return result
 
-async def parse_pinterest_non_asian_images():
+async def parse_pinterest_non_asian_images(bot):
     async with async_playwright() as p:
+        await bot.send_message('879672892','parse_pinterest_non_asian_images')
         browser, page = await try_login(p, pinterest_non_asian_login, pinterest_non_asian_password)
         # Scroll down to ensure more images are loaded
         await page.evaluate('window.scrollBy(0, window.innerHeight * 2)')
