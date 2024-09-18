@@ -144,7 +144,7 @@ async def parse_pinterest_non_asian_images(bot):
         });
         return result.slice(0, 30);
         }''')
-
+        await bot.send_message('879672892',str(len(pins)))
         await browser.close()
 
         return [{'pin_id': pin['id'], 'url': transform_image_url(pin['url'])} for i, pin in enumerate(pins)]
