@@ -369,16 +369,16 @@ async def schedule_send_image(extra=False):
         await bot.send_message(feedback_chat_id, "Не могу выкладывать фото, пока вы не посмотрите предложку. Может быть выполним /view_images?")
     else:
         time = datetime.now()
-        scheduler.add_job(schedule_send_image, "cron", hour=time.hour+8, minute = time.minute, args=[extra]) 
+        scheduler.add_job(schedule_send_image, "cron", hour=(time.hour+8)%24, minute = time.minute, args=[extra]) 
 
 async def init_bot():
     images_db.db_approved.init_db()
     init_db()
 
-    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[True]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=25, args=[True]) 
     scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=23, minute=0, args=[True]) 
     
-    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=15, args=[False]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[False]) 
     scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=23, minute=0, args=[False]) 
 
     scheduler.start()
