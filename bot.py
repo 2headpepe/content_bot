@@ -25,7 +25,7 @@ from images_db.db import (
 import images_db.db_approved
 import video_db.db_approved
 from pinterest_parser import like_pins, parse_basketball_video
-from parse_dzen import parse_dzen
+# from parse_dzen import parse_dzen
 from video_db.db import (
     add_video_to_db, 
     get_video_and_last_id, 
