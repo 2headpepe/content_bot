@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandObject
 from aiogram.types import InputMediaPhoto, InlineKeyboardButton, InlineKeyboardMarkup
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sd import generate_image
 from consts import (
@@ -356,7 +356,7 @@ async def schedule_parse_pinterest_images(extra=False):
     if count < 100:
         await parse_pinterest_images(extra)
 
-    now = datetime.datetime.now()
+    now = datetime.now()
     scheduler.add_job(parse_pinterest_images, "cron", hour=now.hour+1, minute=now.minute) 
 
 async def schedule_send_image(extra=False):
@@ -368,17 +368,17 @@ async def schedule_send_image(extra=False):
     if res == '-1':
         await bot.send_message(feedback_chat_id, "Не могу выкладывать фото, пока вы не посмотрите предложку. Может быть выполним /view_images?")
     else:
-        now = datetime.now()
-        run_time = now + timedelta(hours=8)
-
-        scheduler.add_job(schedule_send_image, "cron", run_date=run_time, args=[extra]) 
+        time = datetime.now()
+        scheduler.add_job(schedule_send_image, "cron", hour=time.hour+8, minute = time.minute, args=[extra]) 
 
 async def init_bot():
+    images_db.db_approved.init_db()
     init_db()
+
     scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[True]) 
     scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=23, minute=0, args=[True]) 
-
-    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[False]) 
+    
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=15, args=[False]) 
     scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=23, minute=0, args=[False]) 
 
     scheduler.start()
