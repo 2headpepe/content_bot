@@ -337,7 +337,8 @@ async def parse_pinterest_images(extra=False):
     if res == -1:
         await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
     else:
-        await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок. Попробуй посмотреть {"/view_non_asian_images" if extra else "/view_images"}" )
+        options = "/view_non_asian_images" if extra else "/view_images"
+        await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок. Попробуй посмотреть {options}" )
 
 async def parse_pinterest_non_asian_images():
     res = await add_images_to_db(True)
