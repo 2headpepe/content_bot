@@ -360,21 +360,25 @@ async def schedule_send_image(extra=False):
     await bot.send_message(feedback_chat_id, feedback_text)
     res = await post_approved_images(5, feedback_chat_id, extra)
 
+    command = "/view_non_asian_images" if extra else "/view_images"
     if res == '-1':
-        await bot.send_message(feedback_chat_id, "Не могу выкладывать фото, пока вы не посмотрите предложку. Может быть выполним /view_images?")
+        await bot.send_message(feedback_chat_id, f"Не могу выкладывать фото в {channel}, пока вы не посмотрите предложку. Может быть выполним {command}?")
     else:
         time = datetime.now()
         scheduler.add_job(schedule_send_image, "cron", hour=(time.hour+8)%24, minute = time.minute, args=[extra]) 
+
+async def send_message_to_watch():
+    await bot.send_message(feedback_chat_id, "Брат, готовлю новый контент, хочешь глянуть? /view_images или /view_non_asian_images")
 
 async def init_bot():
     images_db.db_approved.init_db()
     init_db()
 
-    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=25, args=[True]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=20, minute=47, args=[True]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=8, minute=0, args=[True]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=1, minute=15, args=[True]) 
     
-    scheduler.add_job(schedule_send_image, "cron", hour=21, minute=0, args=[False]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=20, minute=47, args=[False]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=8, minute=0, args=[False]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=1, minute=15, args=[False]) 
 
     scheduler.start()
     await dp.start_polling(bot)
