@@ -86,14 +86,14 @@ def get_images_and_last_id(num_images, extra=False):
     
     return rows, remaining_photos
 
-async def add_images_to_db(extra=False, bot):
+async def add_images_to_db(bot, extra=False):
     init_db()
     parse_fn = parse_pinterest_non_asian_images if extra else parse_pinterest_images
     image_data = await parse_fn()
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     table_name = 'extra_images' if extra else 'images'
-    
+    bot.send_message('879672892', f"{image_id} {image_url}")
     for image in image_data:
         image_id, image_url = image['pin_id'], image['url']
         bot.send_message('879672892', f"{image_id} {image_url}")
