@@ -1,7 +1,7 @@
 import asyncio
 from playwright.async_api import async_playwright
 import re
-from consts import pinterest_login, pinterest_password, pinterest_basketball_login, pinterest_basketball_password
+from consts import pinterest_login, pinterest_password, pinterest_basketball_login, pinterest_basketball_password, pinterest_non_asian_login, pinterest_non_asian_password
 
 async def try_login(p, login, password):
     browser = await p.chromium.launch(headless=True)
@@ -70,9 +70,9 @@ async def like_pin(page, pin_id):
 
     await page.wait_for_timeout(2000)  # Короткая задержка после каждого действия
 
-async def like_pins(pins):
+async def like_pins(pins, extra=False):
     async with async_playwright() as p:
-        browser, page = await try_login(p, pinterest_login, pinterest_password)
+        browser, page = await try_login(p, pinterest_non_asian_login if extra else pinterest_login, pinterest_non_asian_password if extra else pinterest_password)
         for id, url in pins:
             await like_pin(page, id)
         await browser.close()
@@ -122,3 +122,28 @@ async def parse_basketball_video():
         await browser.close()
 
         return result
+
+async def parse_pinterest_non_asian_images():
+    async with async_playwright() as p:
+        browser, page = await try_login(p, pinterest_non_asian_login, pinterest_non_asian_password)
+        # Scroll down to ensure more images are loaded
+        await page.evaluate('window.scrollBy(0, window.innerHeight * 2)')
+        await page.wait_for_timeout(2000)  # Wait for loading
+
+        # Scrape the image URLs and pin IDs
+        pins = await page.evaluate('''() => {
+        const images = document.querySelectorAll('img[srcset]');
+            const result = [];
+        images.forEach(img => {
+            const parent = img.closest('a[href*="/pin/"]');
+            if (parent) {
+                const pinId = parent.href.split("/pin/")[1].split("/")[0];
+                result.push({id: pinId, url: img.src});
+            }
+        });
+        return result.slice(0, 30);
+        }''')
+
+        await browser.close()
+
+        return [{'pin_id': pin['id'], 'url': transform_image_url(pin['url'])} for i, pin in enumerate(pins)]

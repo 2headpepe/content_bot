@@ -6,6 +6,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandObject
 from aiogram.types import InputMediaPhoto, InlineKeyboardButton, InlineKeyboardMarkup
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from datetime import datetime, timedelta
 
 from sd import generate_image
 from consts import (
@@ -13,7 +14,8 @@ from consts import (
     bot_token, 
     negative_prompt, 
     allowed_users, 
-    tg_channel_id
+    tg_channel_id,
+    tg_extra_channel_id
 )
 from images_db.db import (
     add_images_to_db, 
@@ -31,6 +33,7 @@ from video_db.db import (
     get_video_and_last_id, 
     get_video_by_pin_id
 )
+# from parse_folder import scrape_fapfolder
 
 TIMEZONE = "Europe/Moscow"
 
@@ -42,8 +45,7 @@ dp = Dispatcher()
 scheduler = AsyncIOScheduler(timezone=TIMEZONE)
 
 # Вспомогательная функция отправки изображений с чекбоксами
-async def send_media_with_checkboxes(chat_id, get_media_func, send_media_func, media_type):
-    media_data, remaining_media = get_media_func(1)
+async def send_media_with_checkboxes(chat_id, media_data, remaining_media, send_media_func, media_type, extra=False):
     if not media_data:
         await send_message(chat_id, f"Больше нет непросмотренных {media_type}")
         return
@@ -51,9 +53,9 @@ async def send_media_with_checkboxes(chat_id, get_media_func, send_media_func, m
     id, pin_id, url = media_data[0]
     
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="❤️", callback_data=f"like_{pin_id}_{media_type}")],
-        [InlineKeyboardButton(text="👎", callback_data=f"dislike_{pin_id}_{media_type}")],
-        [InlineKeyboardButton(text="Не хочу больше смотреть", callback_data=f"skip_{pin_id}_{media_type}")]
+        [InlineKeyboardButton(text="❤️", callback_data=f"like_{pin_id}_{media_type}_{extra}")],
+        [InlineKeyboardButton(text="👎", callback_data=f"dislike_{pin_id}_{media_type}_{extra}")],
+        [InlineKeyboardButton(text="Не хочу больше смотреть", callback_data=f"skip_{pin_id}_{media_type}_{extra}")]
     ])
     
     await send_media_func(
@@ -123,7 +125,24 @@ async def cmd_pinterest_images(message: types.Message, command: CommandObject):
         await message.answer("Ошибка: нет доступа")
         return
 
-    await parse_pinterest_images()
+    await parse_pinterest_images(False)
+
+@dp.message(Command("parse_non_asian_pinterest"))
+async def cmd_parse_non_asian_pinterest(message: types.Message, command: CommandObject):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
+        return
+
+    await parse_pinterest_images(True)
+
+@dp.message(Command("view_non_asian_images"))
+async def cmd_view_non_asian_images(message: types.Message,
+        command: CommandObject):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
+        return
+    media_data, remaining_media = get_images_and_last_id(1, True)
+    await send_media_with_checkboxes(message.chat.id, media_data, remaining_media, send_photo, 'image', True)
 
 @dp.message(Command("view_images"))
 async def cmd_view_image(message: types.Message,
@@ -131,7 +150,9 @@ async def cmd_view_image(message: types.Message,
     if not await validate_user(message.from_user.id):
         await message.answer("Ошибка: нет доступа")
         return
-    await send_media_with_checkboxes(message.chat.id, get_images_and_last_id, send_photo, 'image')
+    media_data, remaining_media = get_images_and_last_id(1)
+    await send_media_with_checkboxes(message.chat.id, media_data, remaining_media, send_photo, 'image')
+
 
 @dp.message(Command("view_video"))
 async def cmd_view_video(message: types.Message,
@@ -162,7 +183,33 @@ async def cmd_view_approved_images(message: types.Message,
     media_files = [types.InputMediaPhoto(media=url) for id, pin_id, url in media_data]
     chunk_size = 10
 
-    await bot.send_message(message.chat.id, f"Следующие в предложке {count} фото из оставшихся {remaining}:")
+    await bot.send_message(message.chat.id, f"Следующие в предложке {count} фото из оставшихся {remaining}, чтобы запостить /post_approved:")
+    for i in range(0, len(media_files), chunk_size):
+        chunk = media_files[i:i + chunk_size]
+        await bot.send_media_group(chat_id=message.chat.id, media=chunk)
+
+@dp.message(Command("view_approved_non_asian_images"))
+async def cmd_view_approved_non_asian_images(message: types.Message,
+        command: CommandObject):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
+        return
+
+    count = 10
+    if command.args is not None and int(command.args) <= 20:
+        count = int(command.args)
+        
+    media_data, remaining = images_db.db_approved.get_images(count, True)
+
+    if len(media_data) < 1:
+        await bot.send_message(message.chat.id, "Нет апрувнутых фото")
+
+    count = len(media_data)
+
+    media_files = [types.InputMediaPhoto(media=url) for id, pin_id, url in media_data]
+    chunk_size = 10
+
+    await bot.send_message(message.chat.id, f"Следующие в предложке {count} фото из оставшихся {remaining}, чтобы запостить /post_non_asian_approved:")
     for i in range(0, len(media_files), chunk_size):
         chunk = media_files[i:i + chunk_size]
         await bot.send_media_group(chat_id=message.chat.id, media=chunk)
@@ -170,7 +217,8 @@ async def cmd_view_approved_images(message: types.Message,
 @dp.message(Command("post_approved"))
 async def cmd_post_approved(message: types.Message,
         command: CommandObject):
-    if not await validate_user(message):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
         return
     
     count = 5
@@ -179,11 +227,34 @@ async def cmd_post_approved(message: types.Message,
     
     await post_approved_images(count, message.chat.id)
 
+@dp.message(Command("post_non_asian_approved"))
+async def cmd_post_approved(message: types.Message,
+        command: CommandObject):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
+        return
+    
+    count = 5
+    if command.args is not None and int(command.args) <= 20:
+        count = int(command.args)
+    
+    await post_approved_images(count, message.chat.id, True)
+
 @dp.message(Command("parse_basketball_videos"))
 async def cmd_parse_basketball_videos(message: types.Message,
         command: CommandObject):
     res = await add_video_to_db()
 
+    if res == -1:
+        await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
+    else:
+        await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок" )
+
+@dp.message(Command("parse_folder"))
+async def cmd_parse_fapfolder(message: types.Message,
+        command: CommandObject):
+    res = await scrape_fapfolder()
+    print(res)
     if res == -1:
         await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
     else:
@@ -212,35 +283,38 @@ liked = []
 
 @dp.callback_query(lambda c: c.data)
 async def handle_reaction(callback_query: types.CallbackQuery):
-    action, id, content_type = callback_query.data.split("_", 2)
+    action, id, content_type, extra = callback_query.data.split("_", 3)
+    print(action, id, content_type, extra)
     if content_type == 'image':
-        url, = await get_image_by_pin_id(id)
+        url, = await get_image_by_pin_id(id, extra)
+        media_data, remaining_media = get_images_and_last_id(1, extra)
         if action == "like":
             liked.append((id, url))
-            await send_media_with_checkboxes(callback_query.from_user.id, get_images_and_last_id, send_photo, 'image')
+            await send_media_with_checkboxes(callback_query.from_user.id, media_data, remaining_media , send_photo, 'image',extra)
         elif action == "dislike":
-            await send_media_with_checkboxes(callback_query.from_user.id, get_images_and_last_id, send_photo, 'image')
+            await send_media_with_checkboxes(callback_query.from_user.id, media_data, remaining_media, send_photo, 'image', extra)
     elif content_type == 'video':
         url, = await get_video_by_pin_id(id)
+        media_data, remaining_media = get_video_and_last_id(1)
         if action == "like":
             liked.append((id, url))
-            await send_media_with_checkboxes(callback_query.from_user.id, get_video_and_last_id, send_video, 'video')
+            await send_media_with_checkboxes(callback_query.from_user.id, media_data, remaining_media, send_video, 'video')
         elif action == "dislike":
-            await send_media_with_checkboxes(callback_query.from_user.id, get_video_and_last_id, send_video, 'video')
+            await send_media_with_checkboxes(callback_query.from_user.id, media_data, remaining_media, send_video, 'video')
     
     if action == "skip":
-        pins_data = await like_pins(liked)
+        pins_data = await like_pins(liked, extra)
 
         pins_data = [{'pin_id': id, 'url': url} for id, url in liked]
         liked.clear()
         if content_type == 'image':
-            await images_db.db_approved.add_images_to_db(pins_data)
+            await images_db.db_approved.add_images_to_db(pins_data, extra)
         elif content_type == 'video':
             await video_db.db_approved.add_video_to_db(pins_data)
-        await bot.send_message(callback_query.from_user.id, f"Сохранил понравившееся!")
+        await bot.send_message(callback_query.from_user.id, f"Сохранил понравившееся! Попробуй {"/view_approved_non_asian_images" if extra else "/view_approved_images"}")
 
-async def post_approved_images(number, feedback_chat_id):
-    media_data, remaining_photos = images_db.db_approved.get_images_and_last_id(number)
+async def post_approved_images(number, feedback_chat_id, extra=False):
+    media_data, remaining_photos = images_db.db_approved.get_images_and_last_id(number, extra)
 
     if len(media_data) < number:
         await bot.send_message(feedback_chat_id, "Недостаточно апрувнутых фото")
@@ -252,45 +326,56 @@ async def post_approved_images(number, feedback_chat_id):
     for i in range(0, len(media_files), chunk_size):
         chunk = media_files[i:i + chunk_size]
         
-        await bot.send_media_group(chat_id=tg_channel_id, media=chunk)
+        channel = tg_extra_channel_id if extra else tg_channel_id
+        print(media_files,channel)
+        await bot.send_media_group(chat_id=channel, media=chunk)
 
-utro = "утром"
-evening = "вечером"
-async def send_image(morning):
-    if morning:
-        await bot.send_message(feedback_chat_id, f"Начинаю запланированную выкладку картинок {utro}")
+async def parse_pinterest_images(extra=False):
+    res = await add_images_to_db(extra)
+
+    if res == -1:
+        await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
     else:
-        await bot.send_message(feedback_chat_id, f"Начинаю запланированную выкладку картинок {evening}")
-    res = await post_approved_images(5, feedback_chat_id)
+        await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок. Попробуй посмотреть {"/view_non_asian_images" if extra else "/view_images"}" )
 
-    if res == '-1':
-        await bot.send_message(feedback_chat_id, "Не могу выкладывать фото, пока вы не посмотрите предложку. Может быть выполним /view_images?")
-    else:
-        if morning:
-            scheduler.add_job(send_image, "cron", hour=19, minute=0, args=[False]) 
-        else:
-            scheduler.add_job(send_image, "cron", hour=10, minute=0, args=[True]) 
-
-async def parse_pinterest_images():
-    res = await add_images_to_db()
-
+async def parse_pinterest_non_asian_images():
+    res = await add_images_to_db(True)
+    print(res)
     if res == -1:
         await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
     else:
         await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок" )
 
-async def schedule_parse_pinterest_images():
-    count = get_images_number()
+async def schedule_parse_pinterest_images(extra=False):
+    count = get_images_number(extra)
+    feedback_text = f"Начинаю запланированный парсинг картинок для тгк {"BeautyBliss" if extra else "Asian girls"}. На данный момент {count} фотографий"
+    await bot.send_message(feedback_chat_id, feedback_text)
     if count < 100:
-        await parse_pinterest_images()
+        await parse_pinterest_images(extra)
 
     now = datetime.datetime.now()
     scheduler.add_job(parse_pinterest_images, "cron", hour=now.hour+1, minute=now.minute) 
 
+async def schedule_send_image(extra=False):
+    feedback_text = f"Начинаю запланированную выкладку картинок в тгк {"BeautyBliss" if extra else "Asian girls"}"
+    await bot.send_message(feedback_chat_id, feedback_text)
+    res = await post_approved_images(5, feedback_chat_id, extra)
+
+    if res == '-1':
+        await bot.send_message(feedback_chat_id, "Не могу выкладывать фото, пока вы не посмотрите предложку. Может быть выполним /view_images?")
+    else:
+        now = datetime.now()
+        run_time = now + timedelta(hours=8)
+
+        scheduler.add_job(schedule_send_image, "cron", run_date=run_time, args=[extra]) 
+
 async def init_bot():
     init_db()
-    scheduler.add_job(send_image, "cron", hour=10, minute=0, args=[True]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=23, minute=0) 
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[True]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=23, minute=0, args=[True]) 
+
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[False]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=23, minute=0, args=[False]) 
 
     scheduler.start()
     await dp.start_polling(bot)
