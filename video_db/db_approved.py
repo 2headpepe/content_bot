@@ -35,7 +35,6 @@ async def add_video_to_db(video_data):
     
     for video in video_data:
         video_id, video_url = video['pin_id'], video['url']
-        print(video_id,video_url)
         try:
             cursor.execute('INSERT INTO video (pin_id, video_url) VALUES (?, ?)', (video_id, video_url,))
         except sqlite3.IntegrityError:

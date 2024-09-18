@@ -65,10 +65,8 @@ def get_images_number(extra=False):
 def get_images_and_last_id(num_images, extra=False):
     table_name = 'extra_images' if extra else 'images'
     last_image_id = get_last_image_id(extra)
-    print(extra, table_name, last_image_id)
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    print(f'SELECT id, pin_id, image_url FROM {table_name} WHERE id > ? ORDER BY id ASC LIMIT ?', (last_image_id, num_images))
     # Выбор изображений после последнего полученного ID
     cursor.execute(f'SELECT id, pin_id, image_url FROM {table_name} WHERE id > ? ORDER BY id ASC LIMIT ?', (last_image_id, num_images))
     rows = cursor.fetchall()
@@ -93,10 +91,8 @@ async def add_images_to_db(bot, extra=False):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     table_name = 'extra_images' if extra else 'images'
-    await bot.send_message('879672892', "test")
     for image in image_data:
         image_id, image_url = image['pin_id'], image['url']
-        await bot.send_message('879672892', f"{image_id} {image_url}")
         
         try:
             cursor.execute(f'INSERT INTO {table_name} (pin_id, image_url) VALUES (?, ?)', (image_id, image_url,))

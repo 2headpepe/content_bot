@@ -1,7 +1,7 @@
 import asyncio
 from playwright.async_api import async_playwright
 import re
-from consts import pinterest_login, pinterest_password, pinterest_basketball_login, pinterest_basketball_password, pinterest_non_asian_login, pinterest_non_asian_password
+from consts import pinterest_login, pinterest_password, pinterest_basketball_login, pinterest_basketball_password, pinterest_non_asian_login, pinterest_non_asian_password, feedback_chat_id
 
 async def try_login(p, login, password):
     browser = await p.chromium.launch(headless=True)
@@ -56,9 +56,8 @@ async def parse_pinterest_images(bot):
         });
         return result.slice(0, 30);
         }''')
-        await bot.send_message('879672892',str(len(pins)))
         await browser.close()
-
+        await bot.send_message(feedback_chat_id, f"Нашел {len(pins)} фото")
         return [{'pin_id': pin['id'], 'url': transform_image_url(pin['url'])} for i, pin in enumerate(pins)]
 
 async def like_pin(page, pin_id):
@@ -100,9 +99,9 @@ async def parse_basketball_video():
             return result.slice(0, 30);
         }''')
 
+        await bot.send_message(feedback_chat_id, f"Нашел {len(pins)} фото")
+        
         result = []
-        print("Извлеченные пины:", pins)
-
         for pin in pins:
             id, url = pin['id'], pin['url']
             new_page = await browser.new_page()
@@ -112,7 +111,6 @@ async def parse_basketball_video():
                 return video ? video.src : null;
             }''')
             
-            print({'pin_id': id, 'url': video_url})
             if video_url and video_url.endswith('.mp4'):
                 result.append({'pin_id': id, 'url': video_url})
             await new_page.close()
@@ -125,7 +123,6 @@ async def parse_basketball_video():
 
 async def parse_pinterest_non_asian_images(bot):
     async with async_playwright() as p:
-        await bot.send_message('879672892','parse_pinterest_non_asian_images')
         browser, page = await try_login(p, pinterest_non_asian_login, pinterest_non_asian_password)
         # Scroll down to ensure more images are loaded
         await page.evaluate('window.scrollBy(0, window.innerHeight * 2)')
@@ -144,7 +141,6 @@ async def parse_pinterest_non_asian_images(bot):
         });
         return result.slice(0, 30);
         }''')
-        await bot.send_message('879672892',str(len(pins)))
         await browser.close()
 
         return [{'pin_id': pin['id'], 'url': transform_image_url(pin['url'])} for i, pin in enumerate(pins)]

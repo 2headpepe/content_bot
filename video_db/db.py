@@ -48,7 +48,6 @@ def get_images_number():
     
 def get_video_and_last_id(num_video):
     last_video_id = get_last_video_id()
-    print(last_video_id)
     
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()

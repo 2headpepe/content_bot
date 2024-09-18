@@ -15,7 +15,8 @@ from consts import (
     negative_prompt, 
     allowed_users, 
     tg_channel_id,
-    tg_extra_channel_id
+    tg_extra_channel_id,
+    feedback_chat_id
 )
 from images_db.db import (
     add_images_to_db, 
@@ -38,7 +39,6 @@ from video_db.db import (
 TIMEZONE = "Europe/Moscow"
 
 password_file = 'passwords.txt'
-feedback_chat_id = '879672892'
 
 bot = Bot(token=bot_token)
 dp = Dispatcher()
@@ -51,7 +51,6 @@ async def send_media_with_checkboxes(chat_id, media_data, remaining_media, send_
         return
     
     id, pin_id, url = media_data[0]
-    bot.send_message(chat_id, f"{id} {pin_id} {url}")
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="❤️", callback_data=f"like_{pin_id}_{media_type}_{extra}")],
         [InlineKeyboardButton(text="👎", callback_data=f"dislike_{pin_id}_{media_type}_{extra}")],
@@ -132,7 +131,6 @@ async def cmd_parse_non_asian_pinterest(message: types.Message, command: Command
     if not await validate_user(message.from_user.id):
         await message.answer("Ошибка: нет доступа")
         return
-    await bot.send_message(feedback_chat_id, f"test" )
     await parse_pinterest_images(bot, True)
 
 @dp.message(Command("view_non_asian_images"))
@@ -142,7 +140,6 @@ async def cmd_view_non_asian_images(message: types.Message,
         await message.answer("Ошибка: нет доступа")
         return
     media_data, remaining_media = get_images_and_last_id(1, True)
-    print(media_data, remaining_media)
     await send_media_with_checkboxes(message.chat.id, media_data, remaining_media, send_photo, 'image', True)
 
 @dp.message(Command("view_images"))
@@ -256,7 +253,6 @@ async def cmd_parse_basketball_videos(message: types.Message,
 async def cmd_parse_fapfolder(message: types.Message,
         command: CommandObject):
     res = await scrape_fapfolder()
-    print(res)
     if res == -1:
         await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
     else:
@@ -286,7 +282,6 @@ liked = []
 @dp.callback_query(lambda c: c.data)
 async def handle_reaction(callback_query: types.CallbackQuery):
     action, id, content_type, extra = callback_query.data.split("_", 3)
-    print(action, id, content_type, extra)
     if content_type == 'image':
         url, = await get_image_by_pin_id(id, extra)
         media_data, remaining_media = get_images_and_last_id(1, extra)
@@ -330,11 +325,9 @@ async def post_approved_images(number, feedback_chat_id, extra=False):
         chunk = media_files[i:i + chunk_size]
         
         channel = tg_extra_channel_id if extra else tg_channel_id
-        print(media_files,channel)
         await bot.send_media_group(chat_id=channel, media=chunk)
 
 async def parse_pinterest_images(bot, extra=False):
-    await bot.send_message(feedback_chat_id, f"test" )
     res = await add_images_to_db(bot, extra)
 
     if res == -1:
@@ -345,7 +338,6 @@ async def parse_pinterest_images(bot, extra=False):
 
 async def parse_pinterest_non_asian_images():
     res = await add_images_to_db(True)
-    print(res)
     if res == -1:
         await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
     else:
