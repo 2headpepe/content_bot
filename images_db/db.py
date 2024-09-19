@@ -22,14 +22,14 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS images (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            pin_id INTEGER NOT NULL UNIQUE,
+            pin_id INTEGER NOT NULL,
             image_url TEXT NOT NULL
         )
     ''')
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS extra_images (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            pin_id INTEGER NOT NULL UNIQUE,
+            pin_id INTEGER NOT NULL,
             image_url TEXT NOT NULL
         )
     ''')
@@ -38,12 +38,18 @@ def init_db():
     conn.close()
 
 def save_last_image_id(last_id, extra=False):
-    file_path = LAST_EXTRA_IMAGE_ID_FILE if extra else LAST_IMAGE_ID_FILE
+    file_path = LAST_IMAGE_ID_FILE
+    if extra==True:
+        file_path = LAST_EXTRA_IMAGE_ID_FILE
+
     with open(file_path, 'w') as f:
         f.write(str(last_id))
 
 def get_last_image_id(extra=False):
-    file_path = LAST_EXTRA_IMAGE_ID_FILE if extra else LAST_IMAGE_ID_FILE
+    file_path = LAST_IMAGE_ID_FILE
+    if extra==True:
+        file_path = LAST_EXTRA_IMAGE_ID_FILE
+
     try:
         with open(file_path, 'r') as f:
             return int(f.read().strip())
@@ -51,7 +57,7 @@ def get_last_image_id(extra=False):
         return 0
 
 def get_images_number(extra=False):
-    table_name = 'extra_images' if extra else 'images'
+    table_name = 'extra_images' if extra==True else 'images'
     last_image_id = get_last_image_id(extra)
     
     conn = sqlite3.connect(DATABASE)
@@ -63,14 +69,17 @@ def get_images_number(extra=False):
     return number_of_images
 
 def get_images_and_last_id(num_images, extra=False):
-    table_name = 'extra_images' if extra else 'images'
+    table_name = 'images'
+    if extra==True:
+        table_name = 'extra_images'
+    
     last_image_id = get_last_image_id(extra)
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     # Выбор изображений после последнего полученного ID
     cursor.execute(f'SELECT id, pin_id, image_url FROM {table_name} WHERE id > ? ORDER BY id ASC LIMIT ?', (last_image_id, num_images))
     rows = cursor.fetchall()
-    
+    print(f'SELECT id, pin_id, image_url FROM {table_name} WHERE id > ? ORDER BY id ASC LIMIT ?', (last_image_id, num_images))
     remaining_photos = 0
     # Если есть новые изображения, обновляем последний ID
     if rows:
@@ -86,11 +95,13 @@ def get_images_and_last_id(num_images, extra=False):
 
 async def add_images_to_db(bot, extra=False):
     init_db()
-    parse_fn = parse_pinterest_non_asian_images if extra else parse_pinterest_images
+    parse_fn = parse_pinterest_non_asian_images if extra==True else parse_pinterest_images
     image_data = await parse_fn(bot)
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    table_name = 'extra_images' if extra else 'images'
+    table_name = 'images'
+    if extra==True:
+        table_name = 'extra_images' 
     for image in image_data:
         image_id, image_url = image['pin_id'], image['url']
         
@@ -109,10 +120,11 @@ async def get_image_by_pin_id(pin_id, extra=False):
     init_db()
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-
     if extra==True:
+        print('я в тру', extra)
         cursor.execute(f'SELECT image_url FROM extra_images WHERE pin_id = ?', (pin_id,))
     else:
+        print('я в false', extra)
         cursor.execute(f'SELECT image_url FROM images WHERE pin_id = ?', (pin_id,))
     
     rows = cursor.fetchall()

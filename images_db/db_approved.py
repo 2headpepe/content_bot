@@ -38,7 +38,7 @@ def init_db():
 
 async def add_images_to_db(image_data, extra=False):
     init_db()
-    table_name = 'extra_images' if extra else 'images'
+    table_name = 'extra_images' if extra==True else 'images'
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     
@@ -53,12 +53,12 @@ async def add_images_to_db(image_data, extra=False):
     conn.close()
 
 def save_last_image_id(last_id, extra=False):
-    file_path = LAST_EXTRA_IMAGE_ID_FILE if extra else LAST_IMAGE_ID_FILE
+    file_path = LAST_EXTRA_IMAGE_ID_FILE if extra==True else LAST_IMAGE_ID_FILE
     with open(file_path, 'w') as f:
         f.write(str(last_id))
 
 def get_last_image_id(extra=False):
-    file_path = LAST_EXTRA_IMAGE_ID_FILE if extra else LAST_IMAGE_ID_FILE
+    file_path = LAST_EXTRA_IMAGE_ID_FILE if extra==True else LAST_IMAGE_ID_FILE
     try:
         with open(file_path, 'r') as f:
             return int(f.read().strip())
@@ -67,7 +67,7 @@ def get_last_image_id(extra=False):
 
 def get_images(num_images, extra=False):
     last_image_id = get_last_image_id(extra)
-    table_name = 'extra_images' if extra else 'images'
+    table_name = 'extra_images' if extra==True else 'images'
     
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -88,7 +88,7 @@ def get_images(num_images, extra=False):
 
 def get_images_and_last_id(num_images, extra=False):
     last_image_id = get_last_image_id(extra)
-    table_name = 'extra_images' if extra else 'images'
+    table_name = 'extra_images' if extra==True else 'images'
     
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()

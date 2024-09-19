@@ -4,7 +4,7 @@ import re
 from consts import pinterest_login, pinterest_password, pinterest_basketball_login, pinterest_basketball_password, pinterest_non_asian_login, pinterest_non_asian_password, feedback_chat_id
 
 async def try_login(p, login, password):
-    browser = await p.chromium.launch(headless=True)
+    browser = await p.chromium.launch(headless=False)
     context = await browser.new_context(
             locale='ru-RU',
             user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -71,7 +71,7 @@ async def like_pin(page, pin_id):
 
 async def like_pins(pins, extra=False):
     async with async_playwright() as p:
-        browser, page = await try_login(p, pinterest_non_asian_login if extra else pinterest_login, pinterest_non_asian_password if extra else pinterest_password)
+        browser, page = await try_login(p, pinterest_non_asian_login if extra==True else pinterest_login, pinterest_non_asian_password if extra==True else pinterest_password)
         for id, url in pins:
             await like_pin(page, id)
         await browser.close()

@@ -83,12 +83,7 @@ async def validate_user(user_id):
 welcome_message = '''Привет. Команды:
 1. /generate string - промпт
 2. /parse_pinterest
-3. /view_images - просмотреть фото и дополнить предложку
-4. /view_approved_images number - количество до 20
-5. /post_approved number - количество до 10
-6. /view_video - пока не работает
-7. /parse_basketball_videos - пока не работает
-8. /parse_dzen - закоп
+3. /parse_non_asian_pinterest
 '''
 # Команды
 @dp.message(Command("start"))
@@ -282,6 +277,7 @@ liked = []
 @dp.callback_query(lambda c: c.data)
 async def handle_reaction(callback_query: types.CallbackQuery):
     action, id, content_type, extra = callback_query.data.split("_", 3)
+    extra = extra.lower() == "true"
     if content_type == 'image':
         await bot.send_message(feedback_chat_id,f"{action} {id} {content_type} {extra}")
         url, = await get_image_by_pin_id(id, extra)
@@ -309,7 +305,7 @@ async def handle_reaction(callback_query: types.CallbackQuery):
             await images_db.db_approved.add_images_to_db(pins_data, extra)
         elif content_type == 'video':
             await video_db.db_approved.add_video_to_db(pins_data)
-        options = "/view_approved_non_asian_images" if extra else "/view_approved_images"
+        options = "/view_approved_non_asian_images" if extra==True else "/view_approved_images"
         await bot.send_message(callback_query.from_user.id, f"Сохранил понравившееся! Попробуй {options}")
 
 async def post_approved_images(number, feedback_chat_id, extra=False):
@@ -325,7 +321,7 @@ async def post_approved_images(number, feedback_chat_id, extra=False):
     for i in range(0, len(media_files), chunk_size):
         chunk = media_files[i:i + chunk_size]
         
-        channel = tg_extra_channel_id if extra else tg_channel_id
+        channel = tg_extra_channel_id if extra==True else tg_channel_id
         await bot.send_media_group(chat_id=channel, media=chunk)
 
 async def parse_pinterest_images(bot, extra=False):
@@ -334,7 +330,7 @@ async def parse_pinterest_images(bot, extra=False):
     if res == -1:
         await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
     else:
-        options = "/view_non_asian_images" if extra else "/view_images"
+        options = "/view_non_asian_images" if extra==True else "/view_images"
         await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок. Попробуй посмотреть {options}" )
 
 async def parse_pinterest_non_asian_images():
@@ -346,7 +342,7 @@ async def parse_pinterest_non_asian_images():
 
 async def schedule_parse_pinterest_images(extra=False):
     count = get_images_number(extra)
-    channel = "BeautyBliss" if extra else "Asian girls"
+    channel = "BeautyBliss" if extra==True else "Asian girls"
     feedback_text = f"Начинаю запланированный парсинг картинок для тгк {channel}. На данный момент {count} фотографий"
     await bot.send_message(feedback_chat_id, feedback_text)
     if count < 100:
@@ -356,31 +352,35 @@ async def schedule_parse_pinterest_images(extra=False):
     scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=now.hour+1, minute=now.minute, args=[extra]) 
 
 async def schedule_send_image(extra=False):
-    channel = "BeautyBliss" if extra else "Asian girls"
+    channel = "BeautyBliss" if extra==True else "Asian girls"
     feedback_text = f"Начинаю запланированную выкладку картинок в тгк {channel}"
     await bot.send_message(feedback_chat_id, feedback_text)
     res = await post_approved_images(5, feedback_chat_id, extra)
 
-    command = "/view_non_asian_images" if extra else "/view_images"
+    command = "/view_non_asian_images" if extra==True else "/view_images"
     if res == '-1':
         await bot.send_message(feedback_chat_id, f"Не могу выкладывать фото в {channel}, пока вы не посмотрите предложку. Может быть выполним {command}?")
     else:
         time = datetime.now()
-        scheduler.add_job(schedule_send_image, "cron", hour=(time.hour+8)%24, minute = time.minute, args=[extra]) 
+        hour = (time.hour+8)%24
+        scheduler.add_job(schedule_send_image, "cron", hour=hour, minute = time.minute, args=[extra]) 
 
 async def send_message_to_watch(extra):
-    command = "/view_non_asian_images" if extra else "/view_images"
+    command = "/view_non_asian_images" if extra==True else "/view_images"
     await bot.send_message(feedback_chat_id, f"Брат, готовлю новый контент, хочешь глянуть? {command}")
+    hour = 12 if extra else 19
+    minute = 30 if extra else 0
+    scheduler.add_job(send_message_to_watch, "cron", hour=hour, minute=minute, args=[extra])
 
 async def init_bot():
     images_db.db_approved.init_db()
     init_db()
 
-    scheduler.add_job(schedule_send_image, "cron", hour=8, minute=0, args=[True]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=1, minute=36, args=[True]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=18, minute=15, args=[True]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=15, minute=30, args=[True]) 
     
-    scheduler.add_job(schedule_send_image, "cron", hour=8, minute=0, args=[False]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=1, minute=26, args=[False]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=18, minute=0, args=[False]) 
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=16, minute=0, args=[False]) 
 
     scheduler.add_job(send_message_to_watch, "cron", hour=12, minute=30, args=[True]) 
     scheduler.add_job(send_message_to_watch, "cron", hour=19, minute=0, args=[False]) 
