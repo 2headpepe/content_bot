@@ -18,8 +18,8 @@ LAST_EXTRA_IMAGE_ID_FILE = 'last_extra_approved_image_id.txt'
 def init_db():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    cursor.execute('TRUNCATE TABLE images')
-    cursor.execute('TRUNCATE TABLE extra_images')
+    cursor.execute('DELETE FROM images')
+    cursor.execute('DELETE FROM extra_images')
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS images (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
