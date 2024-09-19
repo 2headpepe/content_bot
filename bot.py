@@ -323,6 +323,8 @@ async def post_approved_images(number, feedback_chat_id, extra=False):
         
         channel = tg_extra_channel_id if extra==True else tg_channel_id
         await bot.send_media_group(chat_id=channel, media=chunk)
+    channel = "BeautyBliss" if extra==True else "Asian girls"
+    await bot.send_message(chat_id=feedback_chat_id, f"Осталось еще {remaining_photos} в предложке {channel}")
 
 async def parse_pinterest_images(bot, extra=False):
     res = await add_images_to_db(bot, extra)
