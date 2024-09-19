@@ -19,10 +19,12 @@ LAST_EXTRA_IMAGE_ID_FILE = 'last_extra_image_id.txt'
 def init_db():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
+    cursor.execute('TRUNCATE TABLE images')
+    cursor.execute('TRUNCATE TABLE extra_images')
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS images (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            pin_id INTEGER NOT NULL,
+            pin_id INTEGER NOT NULL UNIQUE,
             image_url TEXT NOT NULL
         )
     ''')
@@ -114,9 +116,9 @@ async def get_image_by_pin_id(pin_id, extra=False):
         cursor.execute(f'SELECT image_url FROM extra_images WHERE pin_id = ?', (pin_id,))
     else:
         cursor.execute(f'SELECT image_url FROM images WHERE pin_id = ?', (pin_id,))
+    
     rows = cursor.fetchall()
 
-    
     conn.close()
     
     return rows[0]
