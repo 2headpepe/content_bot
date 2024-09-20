@@ -363,7 +363,8 @@ async def schedule_parse_pinterest_images(extra=False):
         await parse_pinterest_images(bot, extra)
 
     now = datetime.now()
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=now.hour+1, minute=now.minute, args=[extra]) 
+    hour = now.hour+1
+    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=hour%24, minute=now.minute, args=[extra]) 
 
 async def schedule_send_image(extra=False):
     channel = "BeautyBliss" if extra==True else "Asian girls"
@@ -390,7 +391,7 @@ async def init_bot():
     images_db.db_approved.init_db()
     init_db()
 
-    scheduler.add_job(schedule_send_image, "cron", hour=18, minute=15, args=[True]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=10, minute=0, args=[True]) 
     scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=10, minute=15, args=[True]) 
     
     scheduler.add_job(schedule_send_image, "cron", hour=10, minute=30, args=[False]) 
