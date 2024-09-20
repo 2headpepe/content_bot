@@ -4,7 +4,7 @@ import logging
 import datetime
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandObject
-from aiogram.types import InputMediaPhoto, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InputMediaPhoto, KeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 
@@ -91,7 +91,20 @@ async def cmd_start(message: types.Message):
     if not await validate_user(message.from_user.id):
         await message.answer("Ошибка: нет доступа")
         return 
-    await message.answer(welcome_message)
+    button1 = KeyboardButton(text='/parse_pinterest')
+    button2 = KeyboardButton(text='/view_images')
+    button3 = KeyboardButton(text='/parse_non_asian_pinterest')
+    button4 = KeyboardButton(text='/view_non_asian_images')
+    
+    keyboard_markup = ReplyKeyboardMarkup(
+        keyboard=[
+            [button1, button2],
+            [button3, button4]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=False
+    )
+    await message.answer(welcome_message, reply_markup=keyboard_markup)
 
 @dp.message(Command("generate"))
 async def cmd_generate(message: types.Message, command: CommandObject):
@@ -146,7 +159,6 @@ async def cmd_view_image(message: types.Message,
     media_data, remaining_media = get_images_and_last_id(1)
 
     await send_media_with_checkboxes(message.chat.id, media_data, remaining_media, send_photo, 'image')
-
 
 @dp.message(Command("view_video"))
 async def cmd_view_video(message: types.Message,
