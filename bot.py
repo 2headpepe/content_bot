@@ -4,7 +4,7 @@ import logging
 import datetime
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandObject
-from aiogram.types import InputMediaPhoto, KeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from aiogram.types import InputMediaPhoto, KeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, InlineKeyboardButton
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 
