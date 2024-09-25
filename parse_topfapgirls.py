@@ -39,13 +39,13 @@ async def scrape_all_pages(id, name, bot):
         await page.goto(f"https://www.topfapgirlspics.com/{id}/")
         await page.wait_for_load_state('networkidle')
 
+        await bot.send_message(feedback_chat_id, "open_page")
         all_photo_urls = []
-        page_num = 0
         while True:
+            await bot.send_message(feedback_chat_id, "new_iter")
             photo_urls = await scrape_photos(context, page)
             all_photo_urls.extend(photo_urls)
 
-            print(photo_urls, page_num)
             page_num += 1
 
             next_button = await page.query_selector('div.pagination a:has-text("Next")')
