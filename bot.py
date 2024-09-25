@@ -16,7 +16,8 @@ from consts import (
     allowed_users, 
     tg_channel_id,
     tg_extra_channel_id,
-    feedback_chat_id
+    feedback_chat_id,
+    tg_hot_channel
 )
 from images_db.db import (
     add_images_to_db, 
@@ -28,12 +29,13 @@ from images_db.db import (
 import images_db.db_approved
 import video_db.db_approved
 from pinterest_parser import like_pins, parse_basketball_video
-# from parse_dzen import parse_dzen
 from video_db.db import (
     add_video_to_db, 
     get_video_and_last_id, 
     get_video_by_pin_id
 )
+from parse_topfapgirls import scrape_all_pages
+import images_db.hot_images
 
 TIMEZONE = "Europe/Moscow"
 
@@ -81,6 +83,8 @@ async def validate_user(user_id):
 
 welcome_message = '''Привет. Команды:
 1. /generate string - промпт
+2. /parse_hot_images + name
+2. /view_hot_images + name
 2. /parse_pinterest
 3. /parse_non_asian_pinterest
 '''
@@ -158,6 +162,34 @@ async def cmd_view_image(message: types.Message,
     media_data, remaining_media = get_images_and_last_id(1)
 
     await send_media_with_checkboxes(message.chat.id, media_data, remaining_media, send_photo, 'image')
+
+@dp.message(Command("parse_hot_images"))
+async def cmd_parse_hot_images(message: types.Message,
+        command: CommandObject):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
+        return
+    if command.args is None:
+        await message.answer("Ошибка: не переданы аргументы")
+        return
+
+    id, name = command.args.split(' ')
+    await scrape_all_pages(id, name)
+
+@dp.message(Command("post_hot_images"))
+async def cmd_view_hot_images(message: types.Message,
+        command: CommandObject):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
+        return
+
+    await post_hot_images(tg_hot_channel)
+
+async def post_hot_images(channel_id):
+    images, name = images_db.hot_images.get_random_girl_images(5)
+    media_files = [types.InputMediaPhoto(media=url) for url in images]
+    media_files[0] = types.InputMediaPhoto(media=images[0], caption=name)
+    await bot.send_media_group(chat_id=channel_id, media=media_files)
 
 @dp.message(Command("view_video"))
 async def cmd_view_video(message: types.Message,
