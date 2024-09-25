@@ -46,8 +46,6 @@ async def scrape_all_pages(id, name, bot):
             photo_urls = await scrape_photos(context, page)
             all_photo_urls.extend(photo_urls)
 
-            page_num += 1
-
             next_button = await page.query_selector('div.pagination a:has-text("Next")')
             if not next_button:
                 break
