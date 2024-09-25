@@ -34,7 +34,6 @@ from video_db.db import (
     get_video_and_last_id, 
     get_video_by_pin_id
 )
-# from parse_folder import scrape_fapfolder
 
 TIMEZONE = "Europe/Moscow"
 
@@ -362,10 +361,6 @@ async def schedule_parse_pinterest_images(extra=False):
     if count < 100:
         await parse_pinterest_images(bot, extra)
 
-    now = datetime.now()
-    hour = now.hour+1
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=hour%24, minute=now.minute, args=[extra]) 
-
 async def schedule_send_image(extra=False):
     channel = "BeautyBliss" if extra==True else "Asian girls"
     feedback_text = f"Начинаю запланированную выкладку картинок в тгк {channel}"
@@ -375,30 +370,21 @@ async def schedule_send_image(extra=False):
     command = "/view_non_asian_images" if extra==True else "/view_images"
     if res == '-1':
         await bot.send_message(feedback_chat_id, f"Не могу выкладывать фото в {channel}, пока вы не посмотрите предложку. Может быть выполним {command}?")
-    else:
-        time = datetime.now()
-        hour = time.hour+12
-        scheduler.add_job(schedule_send_image, "cron", hour=hour%24, minute = time.minute, args=[extra]) 
-
-async def send_message_to_watch(extra):
-    command = "/view_non_asian_images" if extra==True else "/view_images"
-    await bot.send_message(feedback_chat_id, f"Брат, готовлю новый контент, хочешь глянуть? {command}")
-    hour = 12 if extra else 19
-    minute = 30 if extra else 0
-    scheduler.add_job(send_message_to_watch, "cron", hour=hour, minute=minute, args=[extra])
 
 async def init_bot():
     images_db.db_approved.init_db()
     init_db()
 
+    for i in range(0,23,4):
+        scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=i, minute=55, args=[True]) 
+        scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=i, minute=50, args=[False]) 
+
+    
     scheduler.add_job(schedule_send_image, "cron", hour=10, minute=0, args=[True]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=10, minute=15, args=[True]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[True]) 
     
     scheduler.add_job(schedule_send_image, "cron", hour=10, minute=30, args=[False]) 
-    scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=10, minute=20, args=[False]) 
-
-    scheduler.add_job(send_message_to_watch, "cron", hour=12, minute=30, args=[True]) 
-    scheduler.add_job(send_message_to_watch, "cron", hour=19, minute=0, args=[False]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=30, args=[True]) 
 
     scheduler.start()
     await dp.start_polling(bot)
