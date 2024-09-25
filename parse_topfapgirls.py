@@ -23,7 +23,6 @@ async def scrape_photos(context, page):
                 src = await img_element.get_attribute('src')
                 if src:
                     photo_urls.append(src)
-                    print(src)
 
             await new_page.close()
         
@@ -41,18 +40,18 @@ async def scrape_all_pages(id, name, bot):
 
         await bot.send_message(feedback_chat_id, "open_page")
         all_photo_urls = []
-        while True:
-            await bot.send_message(feedback_chat_id, "new_iter")
-            photo_urls = await scrape_photos(context, page)
-            all_photo_urls.extend(photo_urls)
+        # while True:
+        await bot.send_message(feedback_chat_id, "new_iter")
+        all_photo_urls = await scrape_photos(context, page)
+            # all_photo_urls.extend(photo_urls)
 
-            next_button = await page.query_selector('div.pagination a:has-text("Next")')
-            if not next_button:
-                break
+            # next_button = await page.query_selector('div.pagination a:has-text("Next")')
+            # if not next_button:
+            #     break
 
-            await next_button.click()
+            # await next_button.click()
 
-            await page.wait_for_load_state('networkidle')
+            # await page.wait_for_load_state('networkidle')
         
         await browser.close()
         insert_images(all_photo_urls, id, name)
