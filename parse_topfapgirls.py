@@ -1,6 +1,6 @@
 from playwright.async_api import async_playwright
 from images_db.hot_images import insert_images
-
+from consts import feedback_chat_id
 
 def convert_urls_to_dict(url_list, name):
     return {name: url for url in url_list}
@@ -29,13 +29,13 @@ async def scrape_photos(context, page):
         
     return photo_urls
 
-async def scrape_all_pages(id, name):
+async def scrape_all_pages(id, name, bot):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context()
         context.set_default_navigation_timeout(60000)
         page = await context.new_page()
-
+        await bot.send_message(feedback_chat_id,f"https://www.topfapgirlspics.com/{id}/")
         await page.goto(f"https://www.topfapgirlspics.com/{id}/")
         await page.wait_for_load_state('networkidle')
 

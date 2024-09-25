@@ -174,7 +174,9 @@ async def cmd_parse_hot_images(message: types.Message,
         return
 
     id, name = command.args.split(' ')
-    await scrape_all_pages(id, name)
+     await bot.send_message(message.chat.id, command.args)
+
+    await scrape_all_pages(id, name, bot)
     await bot.send_message(message.chat.id, "Парсинг по идее закончен")
 
 @dp.message(Command("post_hot_images"))
