@@ -25,6 +25,17 @@ def create_database():
         )
     ''')
 
+    # c.execute('''
+    #     DELETE FROM images
+    #     WHERE auto_id < (
+    #         SELECT last_image_id
+    #         FROM girl_images
+    #         WHERE girl_images.id = images.id
+    #     )
+    # ''')
+
+
+
     conn.commit()
     conn.close()
 
@@ -94,7 +105,8 @@ def get_new_images(girl_id, limit, name):
 
 def get_random_girl_images(limit):
     id, name = get_random_girl()    
+    print(id, name)
 
     images = get_new_images(id, limit, name)
-
+    print(images)
     return images, name

@@ -5,15 +5,15 @@ from consts import feedback_chat_id
 def convert_urls_to_dict(url_list, name):
     return {name: url for url in url_list}
 
-async def scrape_photos(context, page):
+async def scrape_photos(context, page, bot):
     photo_urls = []
     photo_items = await page.query_selector_all("div.photo-item a")
-    
+
     for item in photo_items:
         href = await item.get_attribute('href')
         if href:
             new_page = await context.new_page()
-            
+
             await new_page.goto('https://www.topfapgirlspics.com'+href)
             
             await new_page.wait_for_load_state('networkidle')
@@ -30,28 +30,36 @@ async def scrape_photos(context, page):
 
 async def scrape_all_pages(id, name, bot):
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                '--disable-gpu',
+                '--no-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-setuid-sandbox',
+                '--disable-software-rasterizer'
+            ]
+        )
+
+        context = await browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36")
         context.set_default_navigation_timeout(60000)
         page = await context.new_page()
-        await bot.send_message(feedback_chat_id,f"https://www.topfapgirlspics.com/{id}/")
+        await page.wait_for_timeout(2000)
         await page.goto(f"https://www.topfapgirlspics.com/{id}/")
         await page.wait_for_load_state('networkidle')
 
-        await bot.send_message(feedback_chat_id, "open_page")
         all_photo_urls = []
-        # while True:
-        await bot.send_message(feedback_chat_id, "new_iter")
-        all_photo_urls = await scrape_photos(context, page)
-            # all_photo_urls.extend(photo_urls)
+        while True:
+            photo_urls = await scrape_photos(context, page, bot)
+            all_photo_urls.extend(photo_urls)
 
-            # next_button = await page.query_selector('div.pagination a:has-text("Next")')
-            # if not next_button:
-            #     break
+            next_button = await page.query_selector('div.pagination a:has-text("Next")')
+            if not next_button:
+                break
 
-            # await next_button.click()
+            await next_button.click()
 
-            # await page.wait_for_load_state('networkidle')
+            await page.wait_for_load_state('networkidle')
         
         await browser.close()
         insert_images(all_photo_urls, id, name)
