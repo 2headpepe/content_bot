@@ -4,7 +4,7 @@ import re
 from consts import pinterest_login, pinterest_password, pinterest_basketball_login, pinterest_basketball_password, pinterest_non_asian_login, pinterest_non_asian_password, feedback_chat_id
 
 async def try_login(p, login, password):
-    browser = await p.chromium.launch(headless=False)
+    browser = await p.chromium.launch(headless=True)
     context = await browser.new_context(
             locale='ru-RU',
             user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
