@@ -15,7 +15,7 @@ async def scrape_photos(context, page, bot):
             new_page = await context.new_page()
 
             await new_page.goto('https://www.topfapgirlspics.com'+href)
-            
+            bot.send_message(feedback_chat_id, f"https://www.topfapgirlspics.com{href}")
             await new_page.wait_for_load_state('networkidle')
             
             img_element = await new_page.query_selector("div.img a img")
