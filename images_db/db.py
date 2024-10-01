@@ -26,6 +26,11 @@ def init_db():
             image_url TEXT NOT NULL
         )
     ''')
+    # last_id = get_last_image_id()
+    # cursor.execute('''
+    #     DELETE FROM images
+    #     WHERE id < ?
+    # ''',(last_id,))
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS extra_images (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,6 +38,11 @@ def init_db():
             image_url TEXT NOT NULL
         )
     ''')
+    # last_extra_id = get_last_image_id(True)
+    #     cursor.execute('''
+    #     DELETE FROM images
+    #     WHERE id < ?
+    # ''', (last_extra_id,))
 
     conn.commit()
     conn.close()

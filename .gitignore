@@ -1,5 +1,23 @@
-__pycache__
-venv
-path
+plaintext
+# Исключить pycache и виртуальные окружения
+__pycache__/
+venv/
+
+# Исключить специфичные для системы файлы
 .DS_Store
+
+# Исключить файлы конфигурации и базы данных
 .env
+images_db/images.db
+images_db/approved_images.db
+images_db/hot_images.db
+video_db/
+last_image_id.txt
+last_approved_image_id.txt
+last_extra_image_id.txt
+last_extra_approved_image_id.txt
+
+ya_search_api.py
+yagpt.py
+parse_dzen.py
+parse_folder.py
