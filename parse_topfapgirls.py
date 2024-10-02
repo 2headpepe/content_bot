@@ -34,7 +34,7 @@ def chunk_list(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
 
-async def send_photo_to_check(photo_urls):
+async def send_photo_to_check(photo_urls, bot):
     photo_groups = list(chunk_list(photo_urls, 10))
 
     # Отправляем группы фотографий
@@ -72,7 +72,7 @@ async def scrape_all_pages(id, name, bot):
                 while True:
                     photo_urls = await scrape_photos(context, page, bot)
 
-                    await send_photo_to_check(photo_urls)
+                    await send_photo_to_check(photo_urls, bot)
                     
                     all_photo_urls.extend(photo_urls)
 
