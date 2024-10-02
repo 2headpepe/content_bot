@@ -32,26 +32,25 @@ async def scrape_photos(context, page, bot):
 
 async def scrape_all_pages(id, name, bot):
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=[
-                '--disable-gpu',
-                '--no-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-setuid-sandbox',
-                '--disable-software-rasterizer'
-            ]
-        )
-
-        context = await browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36")
-        context.set_default_navigation_timeout(60000)
-        page = await context.new_page()
-        await page.wait_for_timeout(2000)
-        await page.goto(f"https://www.topfapgirlspics.com/{id}/")
         retry_attempts = 3  # Number of retry attempts
 
         for attempt in range(retry_attempts):
             try:
+                browser = await p.chromium.launch(
+                    headless=True,
+                    args=[
+                    '--disable-gpu',
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-setuid-sandbox',
+                    '--disable-software-rasterizer'
+                    ]
+                )
+                context = await browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36")
+                context.set_default_navigation_timeout(60000)
+                page = await context.new_page()
+                await page.goto(f"https://www.topfapgirlspics.com/{id}/")
+        
                 await page.wait_for_load_state('networkidle')
 
                 all_photo_urls = []
@@ -73,5 +72,5 @@ async def scrape_all_pages(id, name, bot):
                     await bot.send_message(feedback_chat_id, f"Attempt {attempt + 1} failed. Retrying...")
                 else:
                     await bot.send_message(feedback_chat_id, f"Error occurred: {e}")
-        await browser.close()
-        
+            finally:
+                await browser.close()
