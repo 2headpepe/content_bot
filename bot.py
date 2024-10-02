@@ -188,6 +188,34 @@ async def cmd_view_hot_images(message: types.Message,
 
     await post_hot_images(tg_hot_channel)
 
+@dp.message(Command("get_all_girls"))
+async def cmd_view_hot_images(message: types.Message,
+        command: CommandObject):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
+        return
+
+    girls = '\n'.join(await images_db.hot_images.get_all_girls())
+    await bot.send_message(feedback_chat_id, girls)
+
+@dp.message(Command("get_girl_images"))
+async def cmd_view_hot_images(message: types.Message,
+        command: CommandObject):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
+        return
+    
+    if command.args is None:
+        await message.answer("Ошибка: не переданы аргументы")
+        return
+
+    id, name = command.args.split(' ')
+
+    images, name = await images_db.hot_images.get_girl_content(id, name, 3)
+    media_files = [types.InputMediaPhoto(media=url) for url in images]
+    media_files[0] = types.InputMediaPhoto(media=images[0], caption=name)
+    await bot.send_media_group(chat_id=channel_id, media=media_files)
+
 async def post_hot_images(channel_id):
     await bot.send_message(feedback_chat_id, 'Начинаю запланированную выкладку изображений в hot')
     images, name = images_db.hot_images.get_random_girl_images(10)

@@ -63,7 +63,23 @@ def set_last_image_id(girl_id, new_last_image_id, name):
     c.execute('REPLACE INTO girl_images (id, name, last_image_id) VALUES (?, ?, ?)', (girl_id, name, new_last_image_id))
     conn.commit()
     conn.close()
-    
+
+def get_all_girls():
+    create_database()
+
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('SELECT id, name FROM girl_images')
+    row = c.fetchall()
+    conn.commit()
+    conn.close()
+
+    return row
+
+def get_girl_content(girl_id, name, limit):
+    images = get_new_images(girl_id, limit, name)
+    return images, name
+
 def get_random_girl():
     create_database()
 
