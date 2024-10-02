@@ -194,7 +194,7 @@ async def cmd_view_hot_images(message: types.Message,
     if not await validate_user(message.from_user.id):
         await message.answer("Ошибка: нет доступа")
         return
-    girls_list = await images_db.hot_images.get_all_girls()
+    girls_list = images_db.hot_images.get_all_girls()
     girls = '\n'.join(girls_list)
     await bot.send_message(feedback_chat_id, girls)
 
@@ -211,7 +211,7 @@ async def cmd_view_hot_images(message: types.Message,
 
     id, name = command.args.split(' ')
 
-    images, name = await images_db.hot_images.get_girl_content(id, name, 3)
+    images, name = images_db.hot_images.get_girl_content(id, name, 3)
     media_files = [types.InputMediaPhoto(media=url) for url in images]
     media_files[0] = types.InputMediaPhoto(media=images[0], caption=name)
     await bot.send_media_group(chat_id=channel_id, media=media_files)
