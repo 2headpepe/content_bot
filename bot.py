@@ -198,6 +198,15 @@ async def cmd_view_hot_images(message: types.Message,
     girls = '\n'.join(' '.join(tup) for tup in girls_list)
     await bot.send_message(feedback_chat_id, girls)
 
+@dp.message(Command("get_random_girl"))
+async def cmd_view_hot_images(message: types.Message,
+        command: CommandObject):
+    if not await validate_user(message.from_user.id):
+        await message.answer("Ошибка: нет доступа")
+        return
+    id, name = images_db.hot_images.get_random_girl()
+    await bot.send_message(feedback_chat_id, f"{id}: {name}")
+
 @dp.message(Command("get_girl_images"))
 async def cmd_view_hot_images(message: types.Message,
         command: CommandObject):
