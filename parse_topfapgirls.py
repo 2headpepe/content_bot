@@ -48,21 +48,30 @@ async def scrape_all_pages(id, name, bot):
         page = await context.new_page()
         await page.wait_for_timeout(2000)
         await page.goto(f"https://www.topfapgirlspics.com/{id}/")
-        await page.wait_for_load_state('networkidle')
+        retry_attempts = 3  # Number of retry attempts
 
-        all_photo_urls = []
-        while True:
-            photo_urls = await scrape_photos(context, page, bot)
-            all_photo_urls.extend(photo_urls)
+        for attempt in range(retry_attempts):
+            try:
+                await page.wait_for_load_state('networkidle')
 
-            next_button = await page.query_selector('div.pagination a:has-text("Next")')
-            if not next_button:
+                all_photo_urls = []
+                while True:
+                    photo_urls = await scrape_photos(context, page, bot)
+                    all_photo_urls.extend(photo_urls)
+
+                    next_button = await page.query_selector('div.pagination a:has-text("Next")')
+                    if not next_button:
+                        break
+
+                    await next_button.click()
+
+                    await page.wait_for_load_state('networkidle')
+                insert_images(all_photo_urls, id, name)
                 break
-
-            await next_button.click()
-
-            await page.wait_for_load_state('networkidle')
-        
+            except Exception as e:
+                if attempt < retry_attempts - 1:
+                    await bot.send_message(feedback_chat_id, f"Attempt {attempt + 1} failed. Retrying...")
+                else:
+                    await bot.send_message(feedback_chat_id, f"Error occurred: {e}")
         await browser.close()
-        insert_images(all_photo_urls, id, name)
         
