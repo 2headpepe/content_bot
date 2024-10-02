@@ -6,10 +6,7 @@ from images_db.db import (
 )
 from parse_topfapgirls import scrape_all_pages
 async def main():
-    # await init_bot()
-    id = 'alice-delish-3'
-    name = 'AliceDelish'
-    await scrape_all_pages(id, name, bot)
+    await init_bot()
 
 if __name__ == "__main__":
     asyncio.run(main())
