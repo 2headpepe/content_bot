@@ -30,6 +30,7 @@ async def scrape_photos(context, page, bot):
     return photo_urls
 
 async def scrape_all_pages(id, name, bot):
+    await bot.send_message(feedback_chat_id, f"Started parsing for https://www.topfapgirlspics.com/{id}/")
     async with async_playwright() as p:
         retry_attempts = 3  # Number of retry attempts
 
