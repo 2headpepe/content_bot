@@ -79,6 +79,7 @@ def get_images_number(extra=False):
     return number_of_images
 
 def get_images_and_last_id(num_images, extra=False):
+    init_db()
     table_name = 'images'
     if extra==True:
         table_name = 'extra_images'
@@ -103,10 +104,10 @@ def get_images_and_last_id(num_images, extra=False):
     
     return rows, remaining_photos
 
-async def add_images_to_db(bot, extra=False):
+async def add_images_to_db(extra=False):
     init_db()
     parse_fn = parse_pinterest_non_asian_images if extra==True else parse_pinterest_images
-    image_data = await parse_fn(bot)
+    image_data = await parse_fn()
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     table_name = 'images'

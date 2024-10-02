@@ -36,7 +36,7 @@ def transform_image_url(url):
     
     return new_url
 
-async def parse_pinterest_images(bot):
+async def parse_pinterest_images():
     async with async_playwright() as p:
         browser, page = await try_login(p, pinterest_login, pinterest_password)
         # Scroll down to ensure more images are loaded
@@ -57,7 +57,7 @@ async def parse_pinterest_images(bot):
         return result.slice(0, 30);
         }''')
         await browser.close()
-        await bot.send_message(feedback_chat_id, f"Нашел {len(pins)} фото")
+        # await bot.send_message(feedback_chat_id, f"Нашел {len(pins)} фото")
         return [{'pin_id': pin['id'], 'url': transform_image_url(pin['url'])} for i, pin in enumerate(pins)]
 
 async def like_pin(page, pin_id):
@@ -121,7 +121,7 @@ async def parse_basketball_video():
 
         return result
 
-async def parse_pinterest_non_asian_images(bot):
+async def parse_pinterest_non_asian_images():
     async with async_playwright() as p:
         browser, page = await try_login(p, pinterest_non_asian_login, pinterest_non_asian_password)
         # Scroll down to ensure more images are loaded
