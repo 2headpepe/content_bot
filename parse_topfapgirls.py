@@ -7,8 +7,7 @@ def convert_urls_to_dict(url_list, name):
 
 async def scrape_photos(context, page, bot):
     photo_urls = []
-    photo_items = await page.query_selector_all(".model-photo div.photo-item a")
-
+    photo_items = await page.query_selector_all(".model-photo div.photo-item a:not(:has(span))")
     for item in photo_items:
         href = await item.get_attribute('href')
         if href:
