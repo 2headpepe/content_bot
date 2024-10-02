@@ -135,14 +135,14 @@ async def cmd_pinterest_images(message: types.Message, command: CommandObject):
         await message.answer("Ошибка: нет доступа")
         return
 
-    await parse_pinterest_images(bot, False)
+    await parse_pinterest_images(False)
 
 @dp.message(Command("parse_non_asian_pinterest"))
 async def cmd_parse_non_asian_pinterest(message: types.Message, command: CommandObject):
     if not await validate_user(message.from_user.id):
         await message.answer("Ошибка: нет доступа")
         return
-    await parse_pinterest_images(bot, True)
+    await parse_pinterest_images(True)
 
 @dp.message(Command("view_non_asian_images"))
 async def cmd_view_non_asian_images(message: types.Message,
@@ -372,8 +372,8 @@ async def post_approved_images(number, feedback_chat_id, extra=False):
     channel = "BeautyBliss" if extra==True else "Asian girls"
     await bot.send_message(feedback_chat_id, f"Осталось еще {remaining_photos} в предложке {channel}")
 
-async def parse_pinterest_images(bot, extra=False):
-    res = await add_images_to_db(bot, extra)
+async def parse_pinterest_images(extra=False):
+    res = await add_images_to_db(extra)
 
     if res == -1:
         await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
