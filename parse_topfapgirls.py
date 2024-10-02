@@ -47,7 +47,7 @@ async def scrape_all_pages(id, name, bot):
                     ]
                 )
                 context = await browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36")
-                context.set_default_navigation_timeout(60000)
+                context.set_default_navigation_timeout(120000)
                 page = await context.new_page()
                 await page.goto(f"https://www.topfapgirlspics.com/{id}/")
         
