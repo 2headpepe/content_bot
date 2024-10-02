@@ -68,7 +68,7 @@ async def scrape_all_pages(id, name, bot):
                 break
             except Exception as e:
                 if attempt < retry_attempts - 1:
-                    await bot.send_message(feedback_chat_id, f"Attempt {attempt + 1} failed. Retrying...")
+                    await bot.send_message(feedback_chat_id, f"Attempt {attempt + 1} failed. Retrying... Error: {e}")
                 else:
                     await bot.send_message(feedback_chat_id, f"Error occurred: {e}")
             finally:
