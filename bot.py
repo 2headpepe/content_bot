@@ -195,7 +195,7 @@ async def cmd_view_hot_images(message: types.Message,
         await message.answer("Ошибка: нет доступа")
         return
     girls_list = images_db.hot_images.get_all_girls()
-    girls = '\n'.join(girls_list)
+    girls = '\n'.join(', '.join(tup) for tup in girls_list)
     await bot.send_message(feedback_chat_id, girls)
 
 @dp.message(Command("get_girl_images"))
