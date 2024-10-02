@@ -195,7 +195,7 @@ async def cmd_view_hot_images(message: types.Message,
         await message.answer("Ошибка: нет доступа")
         return
     girls_list = images_db.hot_images.get_all_girls()
-    girls = '\n'.join(', '.join(tup) for tup in girls_list)
+    girls = '\n'.join(' '.join(tup) for tup in girls_list)
     await bot.send_message(feedback_chat_id, girls)
 
 @dp.message(Command("get_girl_images"))
@@ -214,7 +214,7 @@ async def cmd_view_hot_images(message: types.Message,
     images, name = images_db.hot_images.get_girl_content(id, name, 3)
     media_files = [types.InputMediaPhoto(media=url) for url in images]
     media_files[0] = types.InputMediaPhoto(media=images[0], caption=name)
-    await bot.send_media_group(chat_id=channel_id, media=media_files)
+    await bot.send_media_group(chat_id=feedback_chat_id, media=media_files)
 
 async def post_hot_images(channel_id):
     await bot.send_message(feedback_chat_id, 'Начинаю запланированную выкладку изображений в hot')
