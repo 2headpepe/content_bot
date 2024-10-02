@@ -23,7 +23,7 @@ async def scrape_photos(context, page, bot):
                     if src:
                         photo_urls.append(src)
             except Exception as e:
-                print(f"Error occurred: {e}")
+                bot.send_message(feedback_chat_id, f"Error occurred: {e}")
             finally:
                 await new_page.close()
         
