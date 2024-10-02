@@ -36,7 +36,10 @@ def dislike_image():
     print('Disliked:', data.get('image'))
     return '', 200
 
-if __name__ == '__main__':
+async def main():
     await add_images_to_db()
     media_data, images = get_images_and_last_id(3)
     app.run(debug=True)
+
+if __name__ == '__main__':
+    asyncio.run(main())
