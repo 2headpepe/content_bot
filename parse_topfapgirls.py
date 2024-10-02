@@ -1,6 +1,7 @@
 from playwright.async_api import async_playwright
 from images_db.hot_images import insert_images
 from consts import feedback_chat_id
+from aiogram import types
 
 def convert_urls_to_dict(url_list, name):
     return {name: url for url in url_list}
@@ -29,6 +30,20 @@ async def scrape_photos(context, page, bot):
         
     return photo_urls
 
+def chunk_list(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+async def send_photo_to_check(phot_urls):
+    photo_groups = list(chunk_list(photo_urls, 10))
+
+    # Отправляем группы фотографий
+    for group in photo_groups:
+        media_group = [types.InputMediaPhoto(media=url) for url in group]
+        await bot.send_media_group(feedback_chat_id, media_group)
+        await asyncio.sleep(1)  # Небольшая пауза между отправками
+
+
 async def scrape_all_pages(id, name, bot):
     await bot.send_message(feedback_chat_id, f"Started parsing for https://www.topfapgirlspics.com/{id}/")
     async with async_playwright() as p:
@@ -56,6 +71,9 @@ async def scrape_all_pages(id, name, bot):
                 all_photo_urls = []
                 while True:
                     photo_urls = await scrape_photos(context, page, bot)
+
+                    await send_photo_to_check(phot_urls)
+                    
                     all_photo_urls.extend(photo_urls)
 
                     next_button = await page.query_selector('div.pagination a:has-text("Next")')

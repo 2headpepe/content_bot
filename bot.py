@@ -189,7 +189,8 @@ async def cmd_view_hot_images(message: types.Message,
     await post_hot_images(tg_hot_channel)
 
 async def post_hot_images(channel_id):
-    images, name = images_db.hot_images.get_random_girl_images(5)
+    await bot.send_message(feedback_chat_id, 'Начинаю запланированную выкладку изображений в hot')
+    images, name = images_db.hot_images.get_random_girl_images(10)
     media_files = [types.InputMediaPhoto(media=url) for url in images]
     media_files[0] = types.InputMediaPhoto(media=images[0], caption=name)
     await bot.send_media_group(chat_id=channel_id, media=media_files)
@@ -414,12 +415,13 @@ async def init_bot():
         scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=i, minute=55, args=[True]) 
         scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=i, minute=50, args=[False]) 
 
-    
     scheduler.add_job(schedule_send_image, "cron", hour=10, minute=0, args=[True]) 
     scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[True]) 
     
     scheduler.add_job(schedule_send_image, "cron", hour=10, minute=30, args=[False]) 
     scheduler.add_job(schedule_send_image, "cron", hour=20, minute=30, args=[True]) 
+
+    scheduler.add_job(post_hot_images,"cron", hour=20, minute=30, args=[tg_hot_channel])
 
     scheduler.start()
     await dp.start_polling(bot)
