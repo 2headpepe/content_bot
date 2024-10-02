@@ -14,7 +14,6 @@ async def scrape_photos(context, page, bot):
         if href:
             new_page = await context.new_page()
             try:
-                await new_page.wait_for_timeout(500)
                 await new_page.goto('https://www.topfapgirlspics.com' + href)
                 await new_page.wait_for_selector("div.img a img")
                     
@@ -33,7 +32,7 @@ async def scrape_photos(context, page, bot):
 async def scrape_all_pages(id, name, bot):
     async with async_playwright() as p:
         browser = await p.chromium.launch(
-            headless=False,
+            headless=True,
             args=[
                 '--disable-gpu',
                 '--no-sandbox',
