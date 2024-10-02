@@ -2,6 +2,7 @@ from playwright.async_api import async_playwright
 from images_db.hot_images import insert_images
 from consts import feedback_chat_id
 from aiogram import types
+import asyncio
 
 def convert_urls_to_dict(url_list, name):
     return {name: url for url in url_list}
