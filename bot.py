@@ -129,7 +129,7 @@ async def cmd_generate(message: types.Message, command: CommandObject):
     else:
         await message.reply(f"Возникла ошибка: {response}")
 
-@dp.message(Command("parse_pinterest"))
+@dp.message(Command("parse_asian_pinterest"))
 async def cmd_pinterest_images(message: types.Message, command: CommandObject):
     if not await validate_user(message.from_user.id):
         await message.answer("Ошибка: нет доступа")
@@ -153,7 +153,7 @@ async def cmd_view_non_asian_images(message: types.Message,
     media_data, remaining_media = get_images_and_last_id(1, True)
     await send_media_with_checkboxes(message.chat.id, media_data, remaining_media, send_photo, 'image', True)
 
-@dp.message(Command("view_images"))
+@dp.message(Command("view_asian_images"))
 async def cmd_view_image(message: types.Message,
         command: CommandObject):
     if not await validate_user(message.from_user.id):
@@ -240,7 +240,7 @@ async def cmd_view_video(message: types.Message,
         return
     await send_media_with_checkboxes(message.chat.id, get_video_and_last_id, send_video, 'video')
 
-@dp.message(Command("view_approved_images"))
+@dp.message(Command("view_approved_asian_images"))
 async def cmd_view_approved_images(message: types.Message,
         command: CommandObject):
     if not await validate_user(message.from_user.id):
@@ -292,7 +292,7 @@ async def cmd_view_approved_non_asian_images(message: types.Message,
         chunk = media_files[i:i + chunk_size]
         await bot.send_media_group(chat_id=message.chat.id, media=chunk)
 
-@dp.message(Command("post_approved"))
+@dp.message(Command("post_asian_approved"))
 async def cmd_post_approved(message: types.Message,
         command: CommandObject):
     if not await validate_user(message.from_user.id):
