@@ -261,7 +261,7 @@ async def cmd_view_approved_images(message: types.Message,
     media_files = [types.InputMediaPhoto(media=url) for id, pin_id, url in media_data]
     chunk_size = 10
 
-    await bot.send_message(message.chat.id, f"Следующие в предложке {count} фото из оставшихся {remaining}, чтобы запостить /post_approved:")
+    await bot.send_message(message.chat.id, f"Следующие в предложке {count} фото из оставшихся {remaining}, чтобы запостить /post_asian_approved:")
     for i in range(0, len(media_files), chunk_size):
         chunk = media_files[i:i + chunk_size]
         await bot.send_media_group(chat_id=message.chat.id, media=chunk)
@@ -389,7 +389,7 @@ async def handle_reaction(callback_query: types.CallbackQuery):
             await images_db.db_approved.add_images_to_db(pins_data, extra)
         elif content_type == 'video':
             await video_db.db_approved.add_video_to_db(pins_data)
-        options = "/view_approved_non_asian_images" if extra==True else "/view_approved_images"
+        options = "/view_approved_non_asian_images" if extra==True else "/view_approved_asian_images"
         await bot.send_message(callback_query.from_user.id, f"Сохранил понравившееся! Попробуй {options}")
 
 async def post_approved_images(number, feedback_chat_id, extra=False):
@@ -416,7 +416,7 @@ async def parse_pinterest_images(extra=False):
     if res == -1:
         await bot.send_message(feedback_chat_id, f"Возникла ошибка в парсинге" )
     else:
-        options = "/view_non_asian_images" if extra==True else "/view_images"
+        options = "/view_non_asian_images" if extra==True else "/view_asian_images"
         await bot.send_message(feedback_chat_id, f"Готово, парсинг заебок. Попробуй посмотреть {options}" )
 
 async def parse_pinterest_non_asian_images():
@@ -440,7 +440,7 @@ async def schedule_send_image(extra=False):
     await bot.send_message(feedback_chat_id, feedback_text)
     res = await post_approved_images(5, feedback_chat_id, extra)
 
-    command = "/view_non_asian_images" if extra==True else "/view_images"
+    command = "/view_non_asian_images" if extra==True else "/view_asian_images"
     if res == '-1':
         await bot.send_message(feedback_chat_id, f"Не могу выкладывать фото в {channel}, пока вы не посмотрите предложку. Может быть выполним {command}?")
 
