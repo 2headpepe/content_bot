@@ -453,7 +453,7 @@ async def init_bot():
         scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=i, minute=50, args=[False]) 
 
     scheduler.add_job(schedule_send_image, "cron", hour=10, minute=0, args=[True]) 
-    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[True]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[False]) 
     
     scheduler.add_job(schedule_send_image, "cron", hour=10, minute=30, args=[False]) 
     scheduler.add_job(schedule_send_image, "cron", hour=20, minute=30, args=[True]) 
