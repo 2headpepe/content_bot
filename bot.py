@@ -91,7 +91,9 @@ welcome_message = '''Привет. Команды:
 # Команды
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
+    await bot.send_message(feedback_chat_id, f"{message.from_user.id}")
     if not await validate_user(message.from_user.id):
+
         await message.answer("Ошибка: нет доступа")
         return 
     button1 = KeyboardButton(text='/parse_pinterest')
@@ -432,7 +434,7 @@ async def schedule_parse_pinterest_images(extra=False):
     feedback_text = f"Начинаю запланированный парсинг картинок для тгк {channel}. На данный момент {count} фотографий"
     await bot.send_message(feedback_chat_id, feedback_text)
     if count < 100:
-        await parse_pinterest_images(bot, extra)
+        await parse_pinterest_images(extra)
 
 async def schedule_send_image(extra=False):
     channel = "BeautyBliss" if extra==True else "Asian girls"
