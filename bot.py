@@ -7,7 +7,7 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import InputMediaPhoto, KeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, InlineKeyboardButton
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
-from neuro_img import generate
+# from neuro_img import generate
 from sd import generate_image
 from consts import (
     stable_diffusion_image_path, 
