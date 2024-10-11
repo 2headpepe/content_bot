@@ -86,6 +86,8 @@ async def scrape_all_pages(id, name, bot):
                 insert_images(all_photo_urls, id, name)
                 break
             except Exception as e:
+                await page.screenshot(path="screenshot.png")
+                await bot.send_photo(message.chat.id, photo=types.FSInputFile("screenshot.png"))
                 if attempt < retry_attempts - 1:
                     await bot.send_message(feedback_chat_id, f"Attempt {attempt + 1} failed. Retrying... Error: {e}")
                 else:
