@@ -447,21 +447,20 @@ async def schedule_send_image(extra=False):
         await bot.send_message(feedback_chat_id, f"Не могу выкладывать фото в {channel}, пока вы не посмотрите предложку. Может быть выполним {command}?")
 
 async def init_bot():
-    await generate()
-    # images_db.db_approved.init_db()
-    # init_db()
+    images_db.db_approved.init_db()
+    init_db()
 
-    # for i in range(0,23,4):
-    #     scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=i, minute=55, args=[True]) 
-    #     scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=i, minute=50, args=[False]) 
+    for i in range(0,23,4):
+        scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=i, minute=55, args=[True]) 
+        scheduler.add_job(schedule_parse_pinterest_images, "cron", hour=i, minute=50, args=[False]) 
 
-    # scheduler.add_job(schedule_send_image, "cron", hour=10, minute=0, args=[True]) 
-    # scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[False]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=10, minute=0, args=[True]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=0, args=[False]) 
     
-    # scheduler.add_job(schedule_send_image, "cron", hour=10, minute=30, args=[False]) 
-    # scheduler.add_job(schedule_send_image, "cron", hour=20, minute=30, args=[True]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=10, minute=30, args=[False]) 
+    scheduler.add_job(schedule_send_image, "cron", hour=20, minute=30, args=[True]) 
 
-    # scheduler.add_job(post_hot_images,"cron", hour=20, minute=30, args=[tg_hot_channel])
+    scheduler.add_job(post_hot_images,"cron", hour=20, minute=30, args=[tg_hot_channel])
 
-    # scheduler.start()
-    # await dp.start_polling(bot)
+    scheduler.start()
+    await dp.start_polling(bot)
