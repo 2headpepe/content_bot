@@ -4,4 +4,4 @@ python-dotenv
 python-telegram-bot
 playwright
 apscheduler
-flask
+cv2
