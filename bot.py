@@ -255,7 +255,7 @@ async def remove_bottom_50_pixels_from_url(image_url):
                 print("Изображение слишком мало для обрезки.")
                 return None
 
-async def post_hot_images(channel_id, bot):
+async def post_hot_images(channel_id):
     await bot.send_message(channel_id, 'Начинаю запланированную выкладку изображений в hot')
     images, name = images_db.hot_images.get_random_girl_images(10)
     
