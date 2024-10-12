@@ -232,33 +232,37 @@ async def cmd_view_hot_images(message: types.Message,
     media_files[0] = types.InputMediaPhoto(media=images[0], caption=name)
     await bot.send_media_group(chat_id=feedback_chat_id, media=media_files)
 
-async def remove_bottom_50_pixels_from_url(image_url):
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(image_url) as response:
-                if response.status != 200:
-                    print(f"Ошибка загрузки изображения по URL: {image_url}")
-                    return None
-                
-                data = await response.read()
-                image_array = np.asarray(bytearray(data), dtype=np.uint8)
-                image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-                
-                if image is None:
-                    print("Ошибка обработки изображения.")
-                    return None
+async def remove_bottom_50_pixels_from_url(image_url, original_filepath, cropped_filepath):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(image_url) as response:
+            if response.status != 200:
+                print(f"Ошибка загрузки изображения по URL: {image_url}")
+                return None
 
-                height = image.shape[0]
-                if height > 50:
-                    cropped_image = image[:height-50, :]
-                    _, buffer = cv2.imencode('.jpg', cropped_image)
-                    return buffer.tobytes()
-                else:
-                    print("Изображение слишком мало для обрезки.")
-                    return None
-    except Exception as e:
-        print(f"Ошибка обработки: {e}")
-        return None
+            data = await response.read()
+            image_array = np.asarray(bytearray(data), dtype=np.uint8)
+            image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+
+            if image is None:
+                print("Ошибка обработки изображения.")
+                return None
+
+            # Сохраняем исходное изображение для проверки
+            cv2.imwrite(original_filepath, image)
+            print(f"Сохранено исходное изображение: {original_filepath}")
+
+            height = image.shape[0]
+            if height > 50:
+                cropped_image = image[:height-50, :]
+                
+                # Сохраняем обрезанное изображение для проверки
+                cv2.imwrite(cropped_filepath, cropped_image)
+                print(f"Сохранено обрезанное изображение: {cropped_filepath}")
+                
+                return cropped_filepath
+            else:
+                print("Изображение слишком мало для обрезки.")
+                return None
 
 async def post_hot_images(channel_id):
     await bot.send_message(feedback_chat_id, 'Начинаю запланированную выкладку изображений в hot')
@@ -266,22 +270,20 @@ async def post_hot_images(channel_id):
     
     media_files = []
     for idx, url in enumerate(images):
-        cropped_image_bytes = await remove_bottom_50_pixels_from_url(url)
+        original_filepath = f'original_image_{idx}.jpg'
+        cropped_filepath = f'cropped_image_{idx}.jpg'
+        
+        image_file = await remove_bottom_50_pixels_from_url(url, original_filepath, cropped_filepath)
 
-        if cropped_image_bytes:
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
-                tmp_file.write(cropped_image_bytes)
-                tmp_file_name = tmp_file.name
-
-            input_file = types.InputFile(tmp_file_name)
+        if image_file:
+            # input_file = types.InputFile(image_file)
             if idx == 0:
-                media_files.append(types.InputMediaPhoto(media=input_file, caption=name))
+                media_files.append(types.InputMediaPhoto(media=photo=types.FSInputFile(cropped_filepath), caption=name))
             else:
                 media_files.append(types.InputMediaPhoto(media=input_file))
     
     if media_files:
         await bot.send_media_group(chat_id=channel_id, media=media_files)
-...
 
 @dp.message(Command("view_video"))
 async def cmd_view_video(message: types.Message,
