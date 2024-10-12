@@ -260,7 +260,7 @@ async def remove_bottom_50_pixels_from_url(image_url):
         print(f"Ошибка обработки: {e}")
         return None
 
-...async def post_hot_images(channel_id):
+async def post_hot_images(channel_id):
     await bot.send_message(feedback_chat_id, 'Начинаю запланированную выкладку изображений в hot')
     images, name = images_db.hot_images.get_random_girl_images(10)
     
