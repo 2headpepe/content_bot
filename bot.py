@@ -276,11 +276,10 @@ async def post_hot_images(channel_id):
         image_file = await remove_bottom_50_pixels_from_url(url, original_filepath, cropped_filepath)
 
         if image_file:
-            # input_file = types.InputFile(image_file)
             if idx == 0:
-                media_files.append(types.InputMediaPhoto(media=photo=types.FSInputFile(cropped_filepath), caption=name))
+                media_files.append(types.InputMediaPhoto(media=types.FSInputFile(cropped_filepath), caption=name))
             else:
-                media_files.append(types.InputMediaPhoto(media=input_file))
+                media_files.append(types.InputMediaPhoto(media=types.FSInputFile(cropped_filepath)))
     
     if media_files:
         await bot.send_media_group(chat_id=channel_id, media=media_files)
