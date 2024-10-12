@@ -262,12 +262,13 @@ async def post_hot_images(channel_id):
     media_files = []
     for idx, url in enumerate(images):
         cropped_image = await remove_bottom_50_pixels_from_url(url)
+
         if cropped_image:
-            # Используем изображение с подписью только для первого элемента
+            input_file = types.InputFile(cropped_image, filename=f'image_{idx}.jpg')
             if idx == 0:
-                media_files.append(types.InputMediaPhoto(media=cropped_image, caption=name))
+                media_files.append(types.InputMediaPhoto(media=input_file, caption=name))
             else:
-                media_files.append(types.InputMediaPhoto(media=cropped_image))
+                media_files.append(types.InputMediaPhoto(media=input_file))
     
     if media_files:
         await bot.send_media_group(chat_id=channel_id, media=media_files)
