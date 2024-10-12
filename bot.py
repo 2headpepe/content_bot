@@ -256,7 +256,7 @@ async def remove_bottom_50_pixels_from_url(image_url):
                 return None
 
 async def post_hot_images(channel_id):
-    await bot.send_message(channel_id, 'Начинаю запланированную выкладку изображений в hot')
+    await bot.send_message(feedback_chat_id, 'Начинаю запланированную выкладку изображений в hot')
     images, name = images_db.hot_images.get_random_girl_images(10)
     
     media_files = []
@@ -264,6 +264,7 @@ async def post_hot_images(channel_id):
         cropped_image = await remove_bottom_50_pixels_from_url(url)
 
         if cropped_image:
+            cropped_image.seek(0)
             input_file = types.InputFile(cropped_image, filename=f'image_{idx}.jpg')
             if idx == 0:
                 media_files.append(types.InputMediaPhoto(media=input_file, caption=name))
