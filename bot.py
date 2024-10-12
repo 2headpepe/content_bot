@@ -2,6 +2,7 @@ import aiohttp
 import cv2
 import numpy as np
 from io import BytesIO
+import tempfile
 import os
 import asyncio
 import logging
@@ -232,40 +233,47 @@ async def cmd_view_hot_images(message: types.Message,
     await bot.send_media_group(chat_id=feedback_chat_id, media=media_files)
 
 async def remove_bottom_50_pixels_from_url(image_url):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(image_url) as response:
-            if response.status != 200:
-                print(f"Ошибка загрузки изображения по URL: {image_url}")
-                return None
-            
-            data = await response.read()
-            image_array = np.asarray(bytearray(data), dtype=np.uint8)
-            image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-            
-            if image is None:
-                print("Ошибка обработки изображения.")
-                return None
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(image_url) as response:
+                if response.status != 200:
+                    print(f"Ошибка загрузки изображения по URL: {image_url}")
+                    return None
+                
+                data = await response.read()
+                image_array = np.asarray(bytearray(data), dtype=np.uint8)
+                image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+                
+                if image is None:
+                    print("Ошибка обработки изображения.")
+                    return None
 
-            height = image.shape[0]
-            if height > 50:
-                cropped_image = image[:height-50, :]
-                _, buffer = cv2.imencode('.jpg', cropped_image)
-                return BytesIO(buffer)
-            else:
-                print("Изображение слишком мало для обрезки.")
-                return None
+                height = image.shape[0]
+                if height > 50:
+                    cropped_image = image[:height-50, :]
+                    _, buffer = cv2.imencode('.jpg', cropped_image)
+                    return buffer.tobytes()
+                else:
+                    print("Изображение слишком мало для обрезки.")
+                    return None
+    except Exception as e:
+        print(f"Ошибка обработки: {e}")
+        return None
 
-async def post_hot_images(channel_id):
+...async def post_hot_images(channel_id):
     await bot.send_message(feedback_chat_id, 'Начинаю запланированную выкладку изображений в hot')
     images, name = images_db.hot_images.get_random_girl_images(10)
     
     media_files = []
     for idx, url in enumerate(images):
-        cropped_image = await remove_bottom_50_pixels_from_url(url)
+        cropped_image_bytes = await remove_bottom_50_pixels_from_url(url)
 
-        if cropped_image:
-            cropped_image.seek(0)
-            input_file = types.InputFile(cropped_image, filename=f'image_{idx}.jpg')
+        if cropped_image_bytes:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+                tmp_file.write(cropped_image_bytes)
+                tmp_file_name = tmp_file.name
+
+            input_file = types.InputFile(tmp_file_name)
             if idx == 0:
                 media_files.append(types.InputMediaPhoto(media=input_file, caption=name))
             else:
@@ -273,6 +281,7 @@ async def post_hot_images(channel_id):
     
     if media_files:
         await bot.send_media_group(chat_id=channel_id, media=media_files)
+...
 
 @dp.message(Command("view_video"))
 async def cmd_view_video(message: types.Message,
