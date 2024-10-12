@@ -1,3 +1,7 @@
+import aiohttp
+import cv2
+import numpy as np
+from io import BytesIO
 import os
 import asyncio
 import logging
@@ -227,12 +231,46 @@ async def cmd_view_hot_images(message: types.Message,
     media_files[0] = types.InputMediaPhoto(media=images[0], caption=name)
     await bot.send_media_group(chat_id=feedback_chat_id, media=media_files)
 
-async def post_hot_images(channel_id):
-    await bot.send_message(feedback_chat_id, 'Начинаю запланированную выкладку изображений в hot')
+async def remove_bottom_50_pixels_from_url(image_url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(image_url) as response:
+            if response.status != 200:
+                print(f"Ошибка загрузки изображения по URL: {image_url}")
+                return None
+            
+            data = await response.read()
+            image_array = np.asarray(bytearray(data), dtype=np.uint8)
+            image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+            
+            if image is None:
+                print("Ошибка обработки изображения.")
+                return None
+
+            height = image.shape[0]
+            if height > 50:
+                cropped_image = image[:height-50, :]
+                _, buffer = cv2.imencode('.jpg', cropped_image)
+                return BytesIO(buffer)
+            else:
+                print("Изображение слишком мало для обрезки.")
+                return None
+
+async def post_hot_images(channel_id, bot):
+    await bot.send_message(channel_id, 'Начинаю запланированную выкладку изображений в hot')
     images, name = images_db.hot_images.get_random_girl_images(10)
-    media_files = [types.InputMediaPhoto(media=url) for url in images]
-    media_files[0] = types.InputMediaPhoto(media=images[0], caption=name)
-    await bot.send_media_group(chat_id=channel_id, media=media_files)
+    
+    media_files = []
+    for idx, url in enumerate(images):
+        cropped_image = await remove_bottom_50_pixels_from_url(url)
+        if cropped_image:
+            # Используем изображение с подписью только для первого элемента
+            if idx == 0:
+                media_files.append(types.InputMediaPhoto(media=cropped_image, caption=name))
+            else:
+                media_files.append(types.InputMediaPhoto(media=cropped_image))
+    
+    if media_files:
+        await bot.send_media_group(chat_id=channel_id, media=media_files)
 
 @dp.message(Command("view_video"))
 async def cmd_view_video(message: types.Message,
