@@ -1,4 +1,6 @@
 import asyncio
+import logging
+
 from playwright.async_api import async_playwright
 import re
 from consts import pinterest_login, pinterest_password, pinterest_basketball_login, pinterest_basketball_password, pinterest_non_asian_login, pinterest_non_asian_password, feedback_chat_id
@@ -62,12 +64,17 @@ async def parse_pinterest_images():
 
 async def like_pin(page, pin_id):
     pin_url = f"https://ru.pinterest.com/pin/{pin_id}/"
-    await page.goto(pin_url)
-    await page.wait_for_timeout(3000)  # Ждем загрузку страницы пина
+    try:
+        await page.goto(pin_url)
+        await page.wait_for_timeout(3000)  # Ждем загрузку страницы пина
 
-    await page.click("button:has-text('Сохранить')")
+        await page.click("button:has-text('Сохранить')")
+        await page.wait_for_timeout(2000)  # Короткая задержка после каждого действия
 
-    await page.wait_for_timeout(2000)  # Короткая задержка после каждого действия
+        logging.info(f"Liked pin {pin_id}")
+    except Exception as e:
+        logging.error(f"Failed to like pin {pin_id}: {e}")
+
 
 async def like_pins(pins, extra=False):
     async with async_playwright() as p:
